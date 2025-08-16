@@ -1,0 +1,25 @@
+
+.app-footer {
+  width: 100%;
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+}
+
+.logo-text-footer {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.copyright {
+  margin-left: 1.5rem;
+  font-size: 0.9rem;
+}
