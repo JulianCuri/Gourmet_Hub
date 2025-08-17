@@ -10,8 +10,10 @@ const AdminLayout = ({ children }) => {
                 <h2 className="admin-title">Gourmet Hub</h2>
                 <p className="admin-subtitle">Panel de Administración</p>
                 <nav className="admin-nav">
-                    <NavLink to="/administracion" end>Lista de Productos</NavLink>
-                    <NavLink to="/administracion/agregar-producto">Agregar Producto</NavLink>
+                    <NavLink to="/administracion" end>Lista de Menús</NavLink>
+                    <NavLink to="/administracion/agregar-menu">Agregar Menú</NavLink>
+                    <NavLink to="/administracion/items">Lista de Items</NavLink>
+                    <NavLink to="/administracion/agregar-item">Agregar Item</NavLink>
                 </nav>
             </aside>
             <main className="admin-content">

@@ -1,5 +1,4 @@
-
-export const products = [
+export const menus = [
   {
     id: 1,
     name: 'Menú Clásico Lunes',

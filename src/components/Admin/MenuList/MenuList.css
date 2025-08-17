@@ -1,5 +1,5 @@
 
-.product-list-container h1 {
+.menu-list-container h1 {
     color: var(--primary-color);
     margin-bottom: 1.5rem;
 }
@@ -20,7 +20,7 @@
     font-weight: bold;
 }
 
-.product-table {
+.menu-table {
     width: 100%;
     border-collapse: collapse;
     background-color: var(--white);
@@ -29,19 +29,19 @@
     overflow: hidden;
 }
 
-.product-table th, .product-table td {
+.menu-table th, .menu-table td {
     padding: 1rem 1.2rem;
     text-align: left;
     border-bottom: 1px solid #eee;
 }
 
-.product-table th {
+.menu-table th {
     background-color: #f8f9fa;
     font-weight: 600;
     color: var(--primary-color);
 }
 
-.product-table tr:last-child td {
+.menu-table tr:last-child td {
     border-bottom: none;
 }
 

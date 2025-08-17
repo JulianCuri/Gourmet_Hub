@@ -1,10 +1,10 @@
 
 import React from 'react';
 import './Main.css';
-import ProductCard from '../ProductCard/ProductCard';
+import MenuCard from '../MenuCard/MenuCard';
 
-function Main({ products }) {
-  const sortedProducts = [...products].sort((a, b) => new Date(a.closingDate) - new Date(b.closingDate));
+function Main({ menus }) {
+  const sortedMenus = [...menus].sort((a, b) => new Date(a.closingDate) - new Date(b.closingDate));
 
   return (
     <main className="app-main">
@@ -16,11 +16,11 @@ function Main({ products }) {
         <h2>Categorías</h2>
         {/* Content for categories will go here */}
       </div>
-      <div className="main-section product-list-section">
+      <div className="main-section menu-list-section">
         <h2>Próximos menús</h2>
-        <div className="product-list">
-          {sortedProducts.map(product => (
-            <ProductCard key={product.id} product={product} />
+        <div className="menu-list">
+          {sortedMenus.map(menu => (
+            <MenuCard key={menu.id} menu={menu} />
           ))}
         </div>
       </div>

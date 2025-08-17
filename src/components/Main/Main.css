@@ -18,7 +18,7 @@
   margin-top: 0;
 }
 
-.product-list-section .product-list {
+.menu-list-section .menu-list {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;

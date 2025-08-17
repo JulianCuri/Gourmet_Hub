@@ -1,5 +1,5 @@
 
-.product-form-container h1 {
+.menu-form-container h1 {
     color: var(--primary-color);
 }
 
@@ -19,7 +19,7 @@
     font-weight: bold;
 }
 
-.product-form {
+.menu-form {
     background-color: var(--white);
     padding: 2.5rem;
     border-radius: 8px;
@@ -39,7 +39,8 @@
 }
 
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
     width: 100%;
     padding: 0.8rem;
     border: 1px solid #ccc;
@@ -66,4 +67,24 @@
 
 .btn-submit:hover {
     opacity: 0.9;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.checkbox-group div {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 0.75rem;
+    accent-color: var(--primary-color);
 }

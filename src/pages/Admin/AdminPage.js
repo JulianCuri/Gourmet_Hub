@@ -3,10 +3,12 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import useWindowSize from './useWindowSize';
 import AdminLayout from '../../components/Admin/AdminLayout/AdminLayout';
-import ProductList from '../../components/Admin/ProductList/ProductList';
-import ProductForm from '../../components/Admin/ProductForm/ProductForm';
+import MenuList from '../../components/Admin/MenuList/MenuList';
+import MenuForm from '../../components/Admin/MenuForm/MenuForm';
+import ItemList from '../../components/Admin/ItemList/ItemList';
+import ItemForm from '../../components/Admin/ItemForm/ItemForm';
 
-const AdminPage = ({ products, addProduct }) => {
+const AdminPage = ({ menus, addMenu, items, addItem, deleteItem }) => {
     const { width } = useWindowSize();
 
     if (width < 768) { // Breakpoint for mobile devices
@@ -21,8 +23,10 @@ const AdminPage = ({ products, addProduct }) => {
     return (
         <AdminLayout>
             <Routes>
-                <Route path="/" element={<ProductList products={products} />} />
-                <Route path="/agregar-producto" element={<ProductForm addProduct={addProduct} />} />
+                <Route path="/" element={<MenuList menus={menus} />} />
+                <Route path="/agregar-menu" element={<MenuForm addMenu={addMenu} items={items} />} />
+                <Route path="/items" element={<ItemList items={items} deleteItem={deleteItem} />} />
+                <Route path="/agregar-item" element={<ItemForm addItem={addItem} />} />
             </Routes>
         </AdminLayout>
     );
