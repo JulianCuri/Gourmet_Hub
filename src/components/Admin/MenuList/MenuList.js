@@ -36,6 +36,7 @@ const MenuList = ({ menus, deleteMenu }) => {
                             <td>{menu.name}</td>
                             <td>{new Date(menu.closingDate).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                             <td className="actions-cell">
+                                <Link to={`/administracion/editar-menu/${menu.id}`} className="btn-edit">Modificar</Link>
                                 <button onClick={() => handleDelete(menu.id)} className="btn-delete">
                                     Eliminar
                                 </button>

@@ -1,9 +1,22 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import './MenuForm.css';
 
-const MenuForm = ({ addMenu, items }) => {
+const getFormattedMenuName = (eventType, menuDateString) => {
+    const date = new Date(menuDateString);
+    const options = { weekday: 'long', day: '2-digit', month: '2-digit' };
+    const formattedDate = date.toLocaleDateString('es-ES', options); // e.g., "lunes 01/09"
+    const [dayOfWeek, datePart] = formattedDate.split(' ');
+    const capitalizedDayOfWeek = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
+    return `Menú ${eventType.charAt(0).toUpperCase() + eventType.slice(1)} ${capitalizedDayOfWeek} ${datePart}`;
+};
+
+const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
+    const { id } = useParams(); // Get menu ID from URL for editing
+    const [isEditing, setIsEditing] = useState(false);
+
+    const [menuId, setMenuId] = useState(null);
     const [menuDate, setMenuDate] = useState('');
     const [eventType, setEventType] = useState('almuerzo');
     const [closingDate, setClosingDate] = useState('');
@@ -21,14 +34,28 @@ const MenuForm = ({ addMenu, items }) => {
         setAvailableMainCourses(items.filter(i => i.category === 'plato principal'));
         setAvailableDesserts(items.filter(i => i.category === 'postre'));
         setAvailableDrinks(items.filter(i => i.category === 'bebida'));
-    }, [items]);
+
+        if (id) {
+            setIsEditing(true);
+            const menuToEdit = menus.find(menu => menu.id === parseInt(id));
+            if (menuToEdit) {
+                setMenuId(menuToEdit.id);
+                setMenuDate(menuToEdit.menuDate);
+                setEventType(menuToEdit.eventType);
+                setClosingDate(menuToEdit.closingDate);
+                setMainCourses(menuToEdit.mainCourses);
+                setDesserts(menuToEdit.desserts);
+                setDrinks(menuToEdit.drinks);
+            }
+        }
+    }, [id, items, menus]);
 
     const handleCheckboxChange = (e, setter, selectedItems) => {
         const { value, checked } = e.target;
         if (checked) {
-            setter([...selectedItems, value]);
+            setter([...selectedItems, parseInt(value)]);
         } else {
-            setter(selectedItems.filter(item => item !== value));
+            setter(selectedItems.filter(item => item !== parseInt(value)));
         }
     };
 
@@ -56,8 +83,8 @@ const MenuForm = ({ addMenu, items }) => {
             return;
         }
 
-        const newMenu = {
-            name: `Menú ${eventType} ${menuDate}`,
+        const menuData = {
+            name: getFormattedMenuName(eventType, menuDate),
             menuDate,
             eventType,
             closingDate,
@@ -67,15 +94,20 @@ const MenuForm = ({ addMenu, items }) => {
             images: [], // Placeholder for images
         };
 
-        addMenu(newMenu);
-        alert('Menú guardado con éxito.');
+        if (isEditing) {
+            updateMenu({ ...menuData, id: menuId });
+            alert('Menú actualizado con éxito.');
+        } else {
+            addMenu(menuData);
+            alert('Menú guardado con éxito.');
+        }
         navigate('/administracion');
     };
 
     return (
         <div className="menu-form-container">
             <div className="form-header">
-                <h1>Agregar Nuevo Menú</h1>
+                <h1>{isEditing ? 'Editar Menú' : 'Agregar Nuevo Menú'}</h1>
                 <Link to="/administracion" className="btn-back">Volver a la lista</Link>
             </div>
             <form className="menu-form" onSubmit={handleSubmit}>
@@ -118,6 +150,7 @@ const MenuForm = ({ addMenu, items }) => {
                                     type="checkbox"
                                     id={`main-${item.id}`}
                                     value={item.id}
+                                    checked={mainCourses.includes(item.id)}
                                     onChange={(e) => handleCheckboxChange(e, setMainCourses, mainCourses)}
                                 />
                                 <label htmlFor={`main-${item.id}`}>{item.name}</label>
@@ -135,6 +168,7 @@ const MenuForm = ({ addMenu, items }) => {
                                     type="checkbox"
                                     id={`dessert-${item.id}`}
                                     value={item.id}
+                                    checked={desserts.includes(item.id)}
                                     onChange={(e) => handleCheckboxChange(e, setDesserts, desserts)}
                                 />
                                 <label htmlFor={`dessert-${item.id}`}>{item.name}</label>
@@ -152,6 +186,7 @@ const MenuForm = ({ addMenu, items }) => {
                                     type="checkbox"
                                     id={`drink-${item.id}`}
                                     value={item.id}
+                                    checked={drinks.includes(item.id)}
                                     onChange={(e) => handleCheckboxChange(e, setDrinks, drinks)}
                                 />
                                 <label htmlFor={`drink-${item.id}`}>{item.name}</label>
@@ -161,7 +196,7 @@ const MenuForm = ({ addMenu, items }) => {
                 </div>
 
                 <div className="form-actions">
-                    <button type="submit" className="btn-submit">Guardar Menú</button>
+                    <button type="submit" className="btn-submit">{isEditing ? 'Guardar Cambios' : 'Guardar Menú'}</button>
                 </div>
             </form>
         </div>

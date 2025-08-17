@@ -56,6 +56,12 @@ function App() {
     setItems((prevItems) => prevItems.filter(item => item.id !== itemId));
   };
 
+  const updateMenu = (updatedMenu) => {
+    setMenus(prevMenus =>
+      prevMenus.map(menu => (menu.id === updatedMenu.id ? updatedMenu : menu))
+    );
+  };
+
   return (
     <BrowserRouter>
       <div className="App">
@@ -66,6 +72,7 @@ function App() {
             element={<AdminPage 
                         menus={menus} 
                         addMenu={addMenu} 
+                        updateMenu={updateMenu}
                         items={items}
                         addItem={addItem}
                         deleteItem={deleteItem}

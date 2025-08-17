@@ -11,9 +11,7 @@ const AdminLayout = ({ children }) => {
                 <p className="admin-subtitle">Panel de Administración</p>
                 <nav className="admin-nav">
                     <NavLink to="/administracion" end>Lista de Menús</NavLink>
-                    <NavLink to="/administracion/agregar-menu">Agregar Menú</NavLink>
                     <NavLink to="/administracion/items">Lista de Items</NavLink>
-                    <NavLink to="/administracion/agregar-item">Agregar Item</NavLink>
                 </nav>
             </aside>
             <main className="admin-content">

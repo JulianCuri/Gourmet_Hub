@@ -1,9 +1,30 @@
-export const menus = [
+const getFormattedMenuName = (eventType, menuDateString) => {
+    const date = new Date(menuDateString);
+    const options = { weekday: 'long', day: '2-digit', month: '2-digit' };
+    const formattedDate = date.toLocaleDateString('es-ES', options); // e.g., "lunes 01/09"
+    const [dayOfWeek, datePart] = formattedDate.split(' ');
+    const capitalizedDayOfWeek = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
+    return `Menú ${eventType.charAt(0).toUpperCase() + eventType.slice(1)} ${capitalizedDayOfWeek} ${datePart}`;
+};
+
+const isWeekend = (dateString) => {
+  const date = new Date(dateString);
+  const dayOfWeek = date.getDay();
+  return dayOfWeek === 0 || dayOfWeek === 6; // 0 is Sunday, 6 is Saturday
+};
+
+const allMenus = [
   {
     id: 1,
-    name: 'Menú Clásico Lunes',
+    name: getFormattedMenuName('almuerzo', '2025-09-01'),
     description: 'Un delicioso y balanceado plato de pollo al horno con patatas doradas, acompañado de una ensalada fresca de lechuga y tomate. Incluye una bebida a elección.',
     closingDate: '2025-09-01T10:00:00',
+    deliveryDate: '2025-09-01T13:00:00',
+    eventType: 'almuerzo',
+    menuDate: '2025-09-01',
+    mainCourses: [],
+        desserts: [],
+    drinks: [],
     images: [
       'https://placehold.co/600x400/E67E22/white?text=Pollo+al+Horno',
       'https://placehold.co/600x400/2ECC71/white?text=Ensalada',
@@ -14,9 +35,15 @@ export const menus = [
   },
   {
     id: 2,
-    name: 'Menú Ejecutivo Martes',
+    name: getFormattedMenuName('cena', '2025-09-02'),
     description: 'Salmón a la plancha con una guarnición de arroz y vegetales salteados. Perfecto para una comida de negocios. Incluye bebida y postre del día.',
     closingDate: '2025-09-02T10:00:00',
+    deliveryDate: '2025-09-02T21:00:00',
+    eventType: 'cena',
+    menuDate: '2025-09-02',
+    mainCourses: [],
+    desserts: [],
+    drinks: [],
     images: [
       'https://placehold.co/600x400/E74C3C/white?text=Salmón',
       'https://placehold.co/600x400/F1C40F/white?text=Arroz',
@@ -27,9 +54,15 @@ export const menus = [
   },
   {
     id: 3,
-    name: 'Menú Vegetariano Miércoles',
+    name: getFormattedMenuName('almuerzo', '2025-09-03'),
     description: 'Lasaña de espinacas y ricotta con salsa de tomate casera, gratinada con queso parmesano. Una opción saludable y deliciosa. Incluye bebida.',
     closingDate: '2025-09-03T10:00:00',
+    deliveryDate: '2025-09-03T13:00:00',
+    eventType: 'almuerzo',
+    menuDate: '2025-09-03',
+    mainCourses: [],
+    desserts: [],
+    drinks: [],
     images: [
       'https://placehold.co/600x400/2ECC71/white?text=Lasaña',
       'https://placehold.co/600x400/E67E22/white?text=Espinacas',
@@ -40,9 +73,15 @@ export const menus = [
   },
   {
     id: 4,
-    name: 'Menú Pasta Jueves',
+    name: getFormattedMenuName('cena', '2025-09-04'),
     description: 'Spaghetti a la carbonara con panceta crujiente, yema de huevo y queso pecorino. Un clásico italiano que nunca falla. Incluye bebida.',
     closingDate: '2025-09-04T10:00:00',
+    deliveryDate: '2025-09-04T21:00:00',
+    eventType: 'cena',
+    menuDate: '2025-09-04',
+    mainCourses: [],
+    desserts: [],
+    drinks: [],
     images: [
       'https://placehold.co/600x400/F1C40F/white?text=Spaghetti',
       'https://placehold.co/600x400/E74C3C/white?text=Panceta',
@@ -53,9 +92,15 @@ export const menus = [
   },
   {
     id: 5,
-    name: 'Menú Casual Viernes',
+    name: getFormattedMenuName('almuerzo', '2025-09-05'),
     description: 'Hamburguesa gourmet de ternera con queso cheddar, bacon, lechuga, tomate y salsa especial en pan brioche. Acompañada de patatas fritas.',
     closingDate: '2025-09-05T10:00:00',
+    deliveryDate: '2025-09-05T13:00:00',
+    eventType: 'almuerzo',
+    menuDate: '2025-09-05',
+    mainCourses: [],
+    desserts: [],
+    drinks: [],
     images: [
       'https://placehold.co/600x400/E74C3C/white?text=Hamburguesa',
       'https://placehold.co/600x400/F1C40F/white?text=Patatas+Fritas',
@@ -66,9 +111,15 @@ export const menus = [
   },
   {
     id: 6,
-    name: 'Menú Oriental Lunes',
+    name: getFormattedMenuName('cena', '2025-09-08'),
     description: 'Pollo teriyaki con arroz blanco y sésamo. Un plato con sabores agridulces y una textura jugosa que te transportará a Japón.',
     closingDate: '2025-09-08T10:00:00',
+    deliveryDate: '2025-09-08T21:00:00',
+    eventType: 'cena',
+    menuDate: '2025-09-08',
+    mainCourses: [],
+    desserts: [],
+    drinks: [],
     images: [
       'https://placehold.co/600x400/E74C3C/white?text=Pollo+Teriyaki',
       'https://placehold.co/600x400/ECF0F1/black?text=Arroz',
@@ -79,9 +130,15 @@ export const menus = [
   },
   {
     id: 7,
-    name: 'Menú del Mar Martes',
+    name: getFormattedMenuName('almuerzo', '2025-09-09'),
     description: 'Merluza en salsa verde con almejas y espárragos. Un plato ligero y lleno de sabor, ideal para los amantes del pescado.',
     closingDate: '2025-09-09T10:00:00',
+    deliveryDate: '2025-09-09T13:00:00',
+    eventType: 'almuerzo',
+    menuDate: '2025-09-09',
+    mainCourses: [],
+    desserts: [],
+    drinks: [],
     images: [
       'https://placehold.co/600x400/3498DB/white?text=Merluza',
       'https://placehold.co/600x400/2ECC71/white?text=Salsa+Verde',
@@ -92,9 +149,15 @@ export const menus = [
   },
   {
     id: 8,
-    name: 'Menú Vegano Miércoles',
+    name: getFormattedMenuName('cena', '2025-09-10'),
     description: 'Curry de garbanzos y lentejas con leche de coco, acompañado de arroz basmati. Un plato exótico, nutritivo y 100% vegano.',
     closingDate: '2025-09-10T10:00:00',
+    deliveryDate: '2025-09-10T21:00:00',
+    eventType: 'cena',
+    menuDate: '2025-09-10',
+    mainCourses: [],
+    desserts: [],
+    drinks: [],
     images: [
       'https://placehold.co/600x400/F1C40F/white?text=Curry',
       'https://placehold.co/600x400/E67E22/white?text=Garbanzos',
@@ -105,22 +168,33 @@ export const menus = [
   },
   {
     id: 9,
-    name: 'Menú de Cuchara Jueves',
+    name: getFormattedMenuName('almuerzo', '2025-09-11'),
     description: 'Lentejas a la riojana con chorizo y patata. Un plato tradicional, reconfortante y lleno de energía para afrontar el día.',
     closingDate: '2025-09-11T10:00:00',
+    deliveryDate: '2025-09-11T13:00:00',
+    eventType: 'almuerzo',
+    menuDate: '2025-09-11',
+    mainCourses: [],
+    desserts: [],
+    drinks: [],
     images: [
       'https://placehold.co/600x400/C0392B/white?text=Lentejas',
       'https://placehold.co/600x400/E74C3C/white?text=Chorizo',
       'https://placehold.co/600x400/F39C12/white?text=Patata',
-      'https://placehold.co/600x400/2C3E50/white?text=Guiso',
-      'https://placehold.co/600x400/7F8C8D/white?text=Pan'
+      'https.co/600x400/7F8C8D/white?text=Pan'
     ]
   },
   {
     id: 10,
-    name: 'Menú Tex-Mex Viernes',
+    name: getFormattedMenuName('cena', '2025-09-12'),
     description: 'Fajitas de pollo con pimientos y cebolla, acompañadas de tortillas de trigo, guacamole y pico de gallo. ¡Una fiesta de sabores!',
     closingDate: '2025-09-12T10:00:00',
+    deliveryDate: '2025-09-12T21:00:00',
+    eventType: 'cena',
+    menuDate: '2025-09-12',
+    mainCourses: [],
+    desserts: [],
+    drinks: [],
     images: [
       'https://placehold.co/600x400/E67E22/white?text=Fajitas',
       'https://placehold.co/600x400/2ECC71/white?text=Guacamole',
@@ -131,9 +205,15 @@ export const menus = [
   },
   {
     id: 11,
-    name: 'Menú Ensalada César Lunes',
+    name: getFormattedMenuName('almuerzo', '2025-09-15'),
     description: 'Clásica ensalada César con pollo a la parrilla, lechuga romana, croutons, queso parmesano y aderezo César casero.',
     closingDate: '2025-09-15T10:00:00',
+    deliveryDate: '2025-09-15T13:00:00',
+    eventType: 'almuerzo',
+    menuDate: '2025-09-15',
+    mainCourses: [],
+    desserts: [],
+    drinks: [],
     images: [
       'https://placehold.co/600x400/27AE60/white?text=Ensalada+César',
       'https://placehold.co/600x400/E67E22/white?text=Pollo+Parrilla',
@@ -144,9 +224,15 @@ export const menus = [
   },
   {
     id: 12,
-    name: 'Menú Ibérico Martes',
+    name: getFormattedMenuName('cena', '2025-09-16'),
     description: 'Secreto ibérico a la plancha con patatas revolconas y pimientos de padrón. Un manjar de la gastronomía española.',
     closingDate: '2025-09-16T10:00:00',
+    deliveryDate: '2025-09-16T21:00:00',
+    eventType: 'cena',
+    menuDate: '2025-09-16',
+    mainCourses: [],
+    desserts: [],
+    drinks: [],
     images: [
       'https://placehold.co/600x400/C0392B/white?text=Secreto+Ibérico',
       'https://placehold.co/600x400/F39C12/white?text=Patatas+Revolconas',
@@ -156,3 +242,5 @@ export const menus = [
     ]
   }
 ];
+
+export const menus = allMenus.filter(menu => !isWeekend(menu.menuDate));
