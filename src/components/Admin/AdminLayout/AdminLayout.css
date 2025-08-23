@@ -1,9 +1,17 @@
 
 .admin-layout {
     display: flex;
+    flex-direction: column;
     min-height: 100vh;
     background-color: var(--background-color);
 }
+
+.admin-main-section {
+    display: flex;
+    flex-grow: 1;
+    padding-top: 80px; /* Adjust based on header height */
+}
+
 
 .admin-sidebar {
     width: 260px;
@@ -30,6 +38,12 @@
     padding-bottom: 1rem;
 }
 
+.admin-logo-image {
+    display: block;
+    margin: 0 auto 1.5rem auto; /* Center the image and add some bottom margin */
+    height: 80px; /* Adjust as needed */
+}
+
 .admin-nav {
     display: flex;
     flex-direction: column;
@@ -46,7 +60,7 @@
 }
 
 .admin-nav a:hover {
-    background-color: #3a5674;
+    background-color: var(--primary-color-hover);
 }
 
 .admin-nav a.active {

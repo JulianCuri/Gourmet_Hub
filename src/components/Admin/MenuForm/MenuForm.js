@@ -31,19 +31,19 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        setAvailableMainCourses(items.filter(i => i.category === 'plato principal'));
-        setAvailableDesserts(items.filter(i => i.category === 'postre'));
-        setAvailableDrinks(items.filter(i => i.category === 'bebida'));
+        setAvailableMainCourses(items.filter(i => i.category === 'Plato Principal'));
+        setAvailableDesserts(items.filter(i => i.category === 'Postre'));
+        setAvailableDrinks(items.filter(i => i.category === 'Bebida'));
 
         if (id) {
             setIsEditing(true);
             const menuToEdit = menus.find(menu => menu.id === parseInt(id));
             if (menuToEdit) {
                 setMenuId(menuToEdit.id);
-                setMenuDate(menuToEdit.menuDate);
+                setMenuDate(menuToEdit.date);
                 setEventType(menuToEdit.eventType);
-                setClosingDate(menuToEdit.closingDate);
-                setMainCourses(menuToEdit.mainCourses);
+                setClosingDate(menuToEdit.closingDateTime);
+                setMainCourses(menuToEdit.mainDishes);
                 setDesserts(menuToEdit.desserts);
                 setDrinks(menuToEdit.drinks);
             }

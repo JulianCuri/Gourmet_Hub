@@ -28,6 +28,7 @@ const ItemList = ({ items, deleteItem }) => {
                         <th>Nombre</th>
                         <th>Categoría</th>
                         <th>Descripción</th>
+                        <th>Imagen</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -38,6 +39,9 @@ const ItemList = ({ items, deleteItem }) => {
                             <td>{item.name}</td>
                             <td>{capitalize(item.category)}</td>
                             <td>{item.description}</td>
+                            <td>
+                                {item.image && <img src={item.image} alt={item.name} style={{ width: '100px', height: 'auto' }} />}
+                            </td>
                             <td className="actions-cell">
                                 <button onClick={() => handleDelete(item.id)} className="btn-delete">
                                     Eliminar
@@ -46,7 +50,7 @@ const ItemList = ({ items, deleteItem }) => {
                         </tr>
                     )) : (
                         <tr>
-                            <td colSpan="5">No hay items para mostrar.</td>
+                            <td colSpan="6">No hay items para mostrar.</td>
                         </tr>
                     )}
                 </tbody>

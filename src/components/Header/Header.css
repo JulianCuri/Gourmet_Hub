@@ -31,8 +31,13 @@
   margin-left: 1rem;
   font-size: 0.9rem;
   color: var(--text-color);
-  border-left: 1px solid #ccc;
+  border-left: 1px solid #DDDDDD;
   padding-left: 1rem;
+}
+
+.logo-image {
+  height: 50px; /* Adjust as needed */
+  margin-right: 10px;
 }
 
 .header-right .btn {

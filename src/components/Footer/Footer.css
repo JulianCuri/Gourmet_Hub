@@ -1,4 +1,3 @@
-
 .app-footer {
   width: 100%;
   background-color: var(--primary-color);
@@ -7,19 +6,56 @@
   display: flex;
   align-items: center;
   box-sizing: border-box;
+  flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+  justify-content: center; /* Center content on smaller screens */
+  border-top: 1px solid var(--primary-color-dark); /* Changed to black border */
 }
 
 .footer-left {
   display: flex;
   align-items: center;
+  flex-wrap: wrap; /* Allow items to wrap within the left block */
+  justify-content: center; /* Center content within the left block on smaller screens */
+  text-align: center; /* Center text for better readability on small screens */
+}
+
+.logo-container {
+  background-color: white;
+  border-radius: 50%;
+  padding: 5px;
+  margin-right: 0.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer-logo {
+  height: 50px; /* Adjust as needed */
 }
 
 .logo-text-footer {
   font-size: 1.2rem;
   font-weight: bold;
+  margin-right: 1.5rem; /* Space between text and copyright */
 }
 
 .copyright {
-  margin-left: 1.5rem;
   font-size: 0.9rem;
+  margin-top: 0.5rem; /* Add some space above copyright on smaller screens */
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .app-footer {
+    justify-content: flex-start; /* Align to start on larger screens */
+  }
+
+  .footer-left {
+    justify-content: flex-start; /* Align to start on larger screens */
+  }
+
+  .copyright {
+    margin-left: 0; /* Reset margin-left on larger screens, as it's now handled by logo-text-footer */
+    margin-top: 0; /* Reset margin-top on larger screens */
+  }
 }

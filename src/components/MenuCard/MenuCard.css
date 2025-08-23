@@ -14,8 +14,7 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-.menu-card-image {
-  width: 100%;
+.menu-card .carousel .slide img {
   height: 200px;
   object-fit: cover;
 }
@@ -36,6 +35,6 @@
 
 .menu-card-closing-date {
   font-size: 0.9rem;
-  color: #666;
+  color: #666666;
   margin-bottom: 16px;
 }

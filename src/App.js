@@ -62,11 +62,19 @@ function App() {
     );
   };
 
+  const menusWithImages = menus.map(menu => {
+    const images = menu.mainDishes
+      .map(dishId => items.find(item => item.id === dishId))
+      .filter(item => item && item.image)
+      .map(item => item.image);
+    return { ...menu, images };
+  });
+
   return (
     <BrowserRouter>
       <div className="App">
         <Routes>
-          <Route path="/" element={<PublicLayout menus={menus} />} />
+          <Route path="/" element={<PublicLayout menus={menusWithImages} />} />
           <Route 
             path="/administracion/*" 
             element={<AdminPage 

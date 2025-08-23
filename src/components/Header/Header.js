@@ -1,14 +1,14 @@
 
 import React from 'react';
 import './Header.css';
+import logoGH from '../../logoGH.png'; // Import the logo
 
 function Header() {
   return (
     <header className="app-header">
       <div className="header-left">
         <a href="/" className="logo-container">
-          {/* Placeholder for logo image */}
-          <span className="logo-text">Gourmet Hub</span>
+          <img src={logoGH} alt="Gourmet Hub Logo" className="logo-image" />
           <span className="slogan">Tu comedor corporativo</span>
         </a>
       </div>
