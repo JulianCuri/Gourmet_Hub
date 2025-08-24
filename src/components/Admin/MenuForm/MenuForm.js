@@ -1,12 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import './MenuForm.css';
 
 const getFormattedMenuName = (eventType, menuDateString) => {
-    const date = new Date(menuDateString);
-    const options = { weekday: 'long', day: '2-digit', month: '2-digit' };
-    const formattedDate = date.toLocaleDateString('es-ES', options); // e.g., "lunes 01/09"
+    const [year, month, day] = menuDateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    const options = { weekday: 'long', day: '2-digit', month: '2-digit', timeZone: 'UTC' };
+    const formattedDate = date.toLocaleDateString('es-ES', options);
     const [dayOfWeek, datePart] = formattedDate.split(' ');
     const capitalizedDayOfWeek = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
     return `Menú ${eventType.charAt(0).toUpperCase() + eventType.slice(1)} ${capitalizedDayOfWeek} ${datePart}`;
@@ -20,18 +20,18 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
     const [menuDate, setMenuDate] = useState('');
     const [eventType, setEventType] = useState('almuerzo');
     const [closingDate, setClosingDate] = useState('');
-        const [mainDishes, setMainDishes] = useState([]);
+    const [mainDishes, setMainDishes] = useState([]);
     const [desserts, setDesserts] = useState([]);
     const [drinks, setDrinks] = useState([]);
     
-        const [availableMainDishes, setAvailableMainDishes] = useState([]);
+    const [availableMainDishes, setAvailableMainDishes] = useState([]);
     const [availableDesserts, setAvailableDesserts] = useState([]);
     const [availableDrinks, setAvailableDrinks] = useState([]);
 
     const navigate = useNavigate();
 
     useEffect(() => {
-                setAvailableMainDishes(items.filter(i => i.category === 'Plato Principal'));
+        setAvailableMainDishes(items.filter(i => i.category === 'Plato Principal'));
         setAvailableDesserts(items.filter(i => i.category === 'Postre'));
         setAvailableDrinks(items.filter(i => i.category === 'Bebida'));
 
@@ -43,7 +43,7 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
                 setMenuDate(menuToEdit.date);
                 setEventType(menuToEdit.eventType);
                 setClosingDate(menuToEdit.closingDateTime);
-                                setMainDishes(menuToEdit.mainDishes);
+                setMainDishes(menuToEdit.mainDishes);
                 setDesserts(menuToEdit.desserts);
                 setDrinks(menuToEdit.drinks);
             }
@@ -70,7 +70,7 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
             alert('La fecha del menú no puede ser anterior a la fecha actual.');
             return;
         }
-                if (mainDishes.length < 3 || mainDishes.length > 4) {
+        if (mainDishes.length < 3 || mainDishes.length > 4) {
             alert('Debe seleccionar entre 3 y 4 platos principales.');
             return;
         }
@@ -85,10 +85,10 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
 
         const menuData = {
             name: getFormattedMenuName(eventType, menuDate),
-            menuDate,
+            date: menuDate,
             eventType,
-            closingDate,
-                        mainDishes,
+            closingDateTime: closingDate,
+            mainDishes,
             desserts,
             drinks,
             images: [], // Placeholder for images
@@ -144,14 +144,14 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
                 <div className="form-group">
                     <label>Platos Principales (seleccione 3 a 4)</label>
                     <div className="checkbox-group">
-                                                {availableMainDishes.map(item => (
+                        {availableMainDishes.map(item => (
                             <div key={item.id}>
                                 <input
                                     type="checkbox"
                                     id={`main-${item.id}`}
                                     value={item.id}
-                                                                        checked={mainDishes.includes(item.id)}
-                                                                        onChange={(e) => handleCheckboxChange(e, setMainDishes, mainDishes)}
+                                    checked={mainDishes.includes(item.id)}
+                                    onChange={(e) => handleCheckboxChange(e, setMainDishes, mainDishes)}
                                 />
                                 <label htmlFor={`main-${item.id}`}>{item.name}</label>
                             </div>

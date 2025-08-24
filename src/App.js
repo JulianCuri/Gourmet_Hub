@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './App.css';
@@ -130,6 +129,10 @@ function App() {
     );
   };
 
+  const deleteMenu = (menuId) => {
+    setMenus((prevMenus) => (prevMenus || []).filter(menu => menu.id !== menuId));
+  };
+
   const menusWithImages = Array.isArray(menus) ? menus.map(menu => {
     const images = (menu.mainDishes || [])
       .map(dishId => (items || []).find(item => item.id === dishId))
@@ -142,13 +145,14 @@ function App() {
     <BrowserRouter>
       <div className="App">
         <Routes>
-          <Route path="/" element={<PublicLayout menus={menusWithImages} />} />
+          <Route path="/" element={<PublicLayout menus={menusWithImages} items={items} />} />
           <Route 
             path="/administracion/*" 
             element={<AdminPage 
                         menus={menus} 
                         addMenu={addMenu} 
                         updateMenu={updateMenu}
+                        deleteMenu={deleteMenu}
                         items={items}
                         addItem={addItem}
                         deleteItem={deleteItem}

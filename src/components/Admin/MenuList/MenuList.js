@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './MenuList.css';
@@ -7,10 +6,7 @@ const MenuList = ({ menus, deleteMenu }) => {
 
     const handleDelete = (menuId) => {
         if (window.confirm('¿Estás seguro de que deseas eliminar este menú?')) {
-            // In a real app, you would call a function from props to delete the menu
-            // e.g., deleteMenu(menuId)
-            alert('Funcionalidad de eliminación no implementada en este sprint.');
-            console.log(`Simulating deletion of menu with id: ${menuId}`);
+            deleteMenu(menuId);
         }
     };
 
