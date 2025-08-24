@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import './Main.css';
 import MenuCard from '../MenuCard/MenuCard';
 
@@ -121,7 +122,9 @@ function Main({ menus, items }) {
         <h2>Próximos menús</h2>
         <div className="menu-list">
           {filteredMenus.map(menu => (
-            <MenuCard key={menu.id} menu={menu} items={items} />
+            <Link to={`/menu/${menu.id}`} key={menu.id} className="menu-card-link">
+              <MenuCard menu={menu} items={items} />
+            </Link>
           ))}
         </div>
       </div>

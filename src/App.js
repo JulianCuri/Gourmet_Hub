@@ -7,6 +7,7 @@ import Footer from './components/Footer/Footer';
 import AdminPage from './pages/Admin/AdminPage';
 import { menus as initialMenus } from './mock/menus'; // Import mock data
 import { items as initialItems } from './mock/items';
+import MenuReservation from './components/MenuReservation/MenuReservation';
 
 // This component wraps the public-facing pages
 const PublicLayout = ({ menus, items }) => (
@@ -146,6 +147,7 @@ function App() {
       <div className="App">
         <Routes>
           <Route path="/" element={<PublicLayout menus={menusWithImages} items={items} />} />
+          <Route path="/menu/:id" element={<MenuReservation menus={menus} items={items} />} />
           <Route 
             path="/administracion/*" 
             element={<AdminPage 
