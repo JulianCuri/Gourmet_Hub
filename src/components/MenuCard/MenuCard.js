@@ -2,13 +2,8 @@ import React from 'react';
 import './MenuCard.css';
 import { Carousel } from 'react-responsive-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
-import { items } from '../../mock/items';
 
 const MenuCard = ({ menu }) => {
-  const mainDishes = menu.mainDishes.map(id => items.find(item => item.id === id));
-  const desserts = menu.desserts.map(id => items.find(item => item.id === id));
-  const carouselItems = [...mainDishes, ...desserts];
-
   return (
     <div className="menu-card" data-testid="menu-card">
       <Carousel
@@ -18,9 +13,9 @@ const MenuCard = ({ menu }) => {
         infiniteLoop={true}
         autoPlay={false}
       >
-        {carouselItems.map(item => (
-          <div key={item.id}>
-            <img src={item.image} alt={item.name} className="menu-card-image" />
+        {menu.images && menu.images.map((image, index) => (
+          <div key={index}>
+            <img src={image} alt={menu.name} className="menu-card-image" />
           </div>
         ))}
       </Carousel>

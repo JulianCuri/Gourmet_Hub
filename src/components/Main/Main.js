@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import './Main.css';
 import MenuCard from '../MenuCard/MenuCard';
@@ -26,7 +25,7 @@ const daysOfWeek = [
   { id: 'viernes', label: 'Viernes', dayIndex: 4 },
 ];
 
-function Main({ menus }) {
+function Main({ menus, items }) {
   const [eventType, setEventType] = useState('todos');
   const [weekRange, setWeekRange] = useState('all');
   const [selectedDays, setSelectedDays] = useState([]);
@@ -45,9 +44,13 @@ function Main({ menus }) {
     );
   };
 
-  const sortedMenus = [...menus].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const safeMenus = Array.isArray(menus) ? menus : [];
+  const sortedMenus = [...safeMenus].sort((a, b) => new Date(a.date) - new Date(b.date));
 
   const filteredMenus = sortedMenus.filter(menu => {
+    if (!menu || !menu.date || !menu.eventType) {
+      return false;
+    }
     const [year, month, day] = menu.date.split('-').map(Number);
     const menuDate = new Date(year, month - 1, day, 12); // Set to noon local time
     const menuDay = (menuDate.getDay() + 6) % 7; // Adjust to make Monday 0, Tuesday 1, ..., Sunday 6
@@ -118,7 +121,7 @@ function Main({ menus }) {
         <h2>Próximos menús</h2>
         <div className="menu-list">
           {filteredMenus.map(menu => (
-            <MenuCard key={menu.id} menu={menu} />
+            <MenuCard key={menu.id} menu={menu} items={items} />
           ))}
         </div>
       </div>
@@ -127,4 +130,3 @@ function Main({ menus }) {
 }
 
 export default Main;
-
