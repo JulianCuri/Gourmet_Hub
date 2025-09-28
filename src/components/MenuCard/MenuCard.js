@@ -2,8 +2,15 @@ import React from 'react';
 import './MenuCard.css';
 import { Carousel } from 'react-responsive-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
+import { useNavigate } from 'react-router-dom';
 
 const MenuCard = ({ menu }) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/menu/${menu.id}`);
+  };
+
   return (
     <div className="menu-card" data-testid="menu-card">
       <Carousel
@@ -12,6 +19,7 @@ const MenuCard = ({ menu }) => {
         showStatus={false}
         infiniteLoop={true}
         autoPlay={false}
+        onClickItem={handleCardClick}
       >
         {menu.images && menu.images.map((image, index) => (
           <div key={index}>
@@ -19,7 +27,7 @@ const MenuCard = ({ menu }) => {
           </div>
         ))}
       </Carousel>
-      <div className="menu-card-content">
+      <div className="menu-card-content" onClick={handleCardClick}>
         <h3 className="menu-card-name">{menu.name}</h3>
         <p className="menu-card-closing-date">Fecha de cierre: {new Date(menu.closingDateTime).toLocaleString()}</p>
       </div>
