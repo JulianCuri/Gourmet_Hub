@@ -28,7 +28,12 @@ const MenuReservation = ({ menus, items }) => {
             <div className="menu-reservation">
                 <div className="title-container">
                     <h1>{menu.name}</h1>
-                    <div className="back-arrow" onClick={() => navigate(-1)}>&#x2190;</div>
+                    <div className="back-arrow" onClick={() => navigate(-1)}>
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <line x1="27" y1="16" x2="7" y2="16" stroke="#fd7e14" strokeWidth="3.5" strokeLinecap="round"/>
+                            <polyline points="13,10 7,16 13,22" fill="none" stroke="#fd7e14" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                    </div>
                 </div>
                 <div className="options-container">
                     <div className="option-category">
