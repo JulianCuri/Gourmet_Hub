@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../Header/Header';
 import Footer from '../Footer/Footer';
 import ItemCard from '../ItemCard/ItemCard';
 import './MenuReservation.css';
 
 const MenuReservation = ({ menus, items }) => {
+    const navigate = useNavigate();
     const { id } = useParams();
     const menu = menus.find(m => m.id === parseInt(id));
 
@@ -25,7 +26,10 @@ const MenuReservation = ({ menus, items }) => {
         <>
             <Header />
             <div className="menu-reservation">
-                <h1>{menu.name}</h1>
+                <div className="title-container">
+                    <h1>{menu.name}</h1>
+                    <div className="back-arrow" onClick={() => navigate(-1)}>&#x2190;</div>
+                </div>
                 <div className="options-container">
                     <div className="option-category">
                         <h2>Platos Principales</h2>
