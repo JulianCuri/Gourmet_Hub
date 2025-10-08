@@ -5,19 +5,17 @@ import './ItemForm.css';
 const ItemForm = ({ addItem }) => {
     const [name, setName] = useState('');
     const [category, setCategory] = useState('plato principal');
-    const [description, setDescription] = useState('');
     const navigate = useNavigate();
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!name || !category || !description) {
+        if (!name || !category) {
             alert('Por favor, complete todos los campos requeridos.');
             return;
         }
         const newItem = {
             name,
             category,
-            description,
             image: '', // Image handling not implemented
         };
         const success = addItem(newItem);
@@ -60,18 +58,7 @@ const ItemForm = ({ addItem }) => {
                         <option value="bebida">Bebida</option>
                     </select>
                 </div>
-                <div className="form-group">
-                    <label htmlFor="description">Descripción</label>
-                    <textarea
-                        id="description"
-                        name="description"
-                        rows="4"
-                        required
-                        placeholder="Ej: Milanesa de ternera con puré de papas."
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    ></textarea>
-                </div>
+                {/* Campo de descripción eliminado */}
                 <div className="form-group">
                     <label htmlFor="image">Imagen</label>
                     <input type="file" id="image" name="image" accept="image/*" />

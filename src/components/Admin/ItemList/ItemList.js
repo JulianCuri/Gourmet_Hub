@@ -27,7 +27,6 @@ const ItemList = ({ items, deleteItem }) => {
                         <th>Id</th>
                         <th>Nombre</th>
                         <th>Categoría</th>
-                        <th>Descripción</th>
                         <th>Imagen</th>
                         <th>Acciones</th>
                     </tr>
@@ -38,7 +37,6 @@ const ItemList = ({ items, deleteItem }) => {
                             <td>{item.id}</td>
                             <td>{item.name}</td>
                             <td>{capitalize(item.category)}</td>
-                            <td>{item.description}</td>
                             <td>
                                 {item.image && <img src={item.image} alt={item.name} style={{ width: '100px', height: 'auto' }} />}
                             </td>
@@ -50,7 +48,7 @@ const ItemList = ({ items, deleteItem }) => {
                         </tr>
                     )) : (
                         <tr>
-                            <td colSpan="6">No hay items para mostrar.</td>
+                            <td colSpan="5">No hay items para mostrar.</td>
                         </tr>
                     )}
                 </tbody>
