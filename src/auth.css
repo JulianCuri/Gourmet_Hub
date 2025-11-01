@@ -1,0 +1,108 @@
+/* Estilos para formularios de login y registro con fondo degradado y tarjeta centrada */
+
+.auth-bg {
+  min-height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #b24592 0%, #f15f79 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 2.5rem 2rem 2rem 2rem;
+  min-width: 340px;
+  max-width: 90vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-card h2 {
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #222;
+  letter-spacing: 1px;
+}
+
+.auth-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.auth-form input[type="email"],
+.auth-form input[type="password"],
+.auth-form input[type="text"] {
+  width: 100%;
+  padding: 0.9rem 1rem 0.9rem 2.5rem;
+  border: 1.5px solid #eee;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #f7f7f7;
+  color: #333;
+  outline: none;
+  transition: border 0.2s;
+}
+.auth-form input:focus {
+  border: 1.5px solid #b24592;
+}
+
+.auth-form .input-icon {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #b24592;
+  font-size: 1.2rem;
+}
+
+.auth-form .input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-form .remember-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.auth-form label {
+  font-size: 1rem;
+  color: #b24592;
+}
+
+.auth-form button {
+  width: 100%;
+  background: linear-gradient(135deg, #b24592 0%, #f15f79 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.9rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.2s;
+}
+.auth-form button:hover {
+  background: linear-gradient(135deg, #f15f79 0%, #b24592 100%);
+}
+
+.auth-error {
+  color: #d7263d;
+  background: #ffeaea;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.98rem;
+  text-align: center;
+}

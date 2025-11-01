@@ -6,21 +6,36 @@ import ItemCard from '../ItemCard/ItemCard';
 import './MenuReservation.css';
 
 const MenuReservation = ({ menus, items }) => {
-    const navigate = useNavigate();
-    const { id } = useParams();
-    const menu = menus.find(m => m.id === parseInt(id));
+        const navigate = useNavigate();
+        const { id } = useParams();
+        const [selectedMain, setSelectedMain] = useState(null);
+        const [selectedDessert, setSelectedDessert] = useState(null);
+        const [selectedDrink, setSelectedDrink] = useState(null);
+        const [showLoginMsg, setShowLoginMsg] = useState(false);
 
-    const [selectedMain, setSelectedMain] = useState(null);
-    const [selectedDessert, setSelectedDessert] = useState(null);
-    const [selectedDrink, setSelectedDrink] = useState(null);
+        const menu = menus.find(m => m.id === parseInt(id));
+        if (!menu) {
+                return <div>Menu not found</div>;
+        }
 
-    if (!menu) {
-        return <div>Menu not found</div>;
-    }
+        const mainDishes = menu.mainDishes.map(dishId => items.find(item => item.id === dishId));
+        const desserts = menu.desserts.map(dessertId => items.find(item => item.id === dessertId));
+        const drinks = menu.drinks.map(drinkId => items.find(item => item.id === drinkId));
 
-    const mainDishes = menu.mainDishes.map(dishId => items.find(item => item.id === dishId));
-    const desserts = menu.desserts.map(dessertId => items.find(item => item.id === dessertId));
-    const drinks = menu.drinks.map(drinkId => items.find(item => item.id === drinkId));
+        // Verificar usuario logueado
+        let user = null;
+        try {
+            user = JSON.parse(localStorage.getItem('currentUser'));
+        } catch {}
+
+        const handleReserve = () => {
+            if (!user) {
+                setShowLoginMsg(true);
+                return;
+            }
+            // Aquí iría la lógica real de reserva para usuarios logueados
+            alert('Pedido reservado con éxito.');
+        };
 
     return (
         <>
@@ -76,7 +91,10 @@ const MenuReservation = ({ menus, items }) => {
                         </div>
                     </div>
                 </div>
-                <button className="reserve-button">Reservar pedido</button>
+                <button className="reserve-button" onClick={handleReserve}>Reservar pedido</button>
+                {showLoginMsg && (
+                  <div className="reserve-login-msg">Debes registrarte e iniciar sesión para realizar un pedido.</div>
+                )}
             </div>
             <Footer />
         </>

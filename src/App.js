@@ -5,8 +5,11 @@ import Header from './components/Header/Header';
 import Main from './components/Main/Main';
 import Footer from './components/Footer/Footer';
 import AdminPage from './pages/Admin/AdminPage';
+import AdminRoute from './pages/AdminRoute';
 import { menus as initialMenus } from './mock/menus'; // Import mock data
 import { items as initialItems } from './mock/items';
+import Register from './pages/Register';
+import Login from './pages/Login';
 import MenuReservation from './components/MenuReservation/MenuReservation';
 
 // This component wraps the public-facing pages
@@ -150,16 +153,22 @@ function App() {
           <Route path="/menu/:id" element={<MenuReservation menus={menus} items={items} />} />
           <Route 
             path="/administracion/*" 
-            element={<AdminPage 
-                        menus={menus} 
-                        addMenu={addMenu} 
-                        updateMenu={updateMenu}
-                        deleteMenu={deleteMenu}
-                        items={items}
-                        addItem={addItem}
-                        deleteItem={deleteItem}
-                      />} 
+            element={
+              <AdminRoute>
+                <AdminPage 
+                  menus={menus} 
+                  addMenu={addMenu} 
+                  updateMenu={updateMenu}
+                  deleteMenu={deleteMenu}
+                  items={items}
+                  addItem={addItem}
+                  deleteItem={deleteItem}
+                />
+              </AdminRoute>
+            }
           />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </div>
     </BrowserRouter>
