@@ -5,6 +5,7 @@ import './ItemForm.css';
 const ItemForm = ({ addItem }) => {
     const [name, setName] = useState('');
     const [category, setCategory] = useState('plato principal');
+    const [imageUrl, setImageUrl] = useState('');
     const navigate = useNavigate();
 
     const handleSubmit = (e) => {
@@ -16,7 +17,9 @@ const ItemForm = ({ addItem }) => {
         const newItem = {
             name,
             category,
-            image: '', // Image handling not implemented
+            // Save the provided URL into both fields so older code and UI can read it
+            image: imageUrl || '',
+            imageUrl: imageUrl || ''
         };
         const success = addItem(newItem);
         if (success) {
@@ -60,8 +63,16 @@ const ItemForm = ({ addItem }) => {
                 </div>
                 {/* Campo de descripción eliminado */}
                 <div className="form-group">
-                    <label htmlFor="image">Imagen</label>
-                    <input type="file" id="image" name="image" accept="image/*" />
+                    <label htmlFor="imageUrl">URL de la imagen</label>
+                    <input
+                        type="text"
+                        id="imageUrl"
+                        name="imageUrl"
+                        placeholder="Ej: /images/principal1.jpg o https://..."
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                    />
+                    <small className="hint">También puedes dejarla vacía y luego editar la imagen manualmente.</small>
                 </div>
                 <div className="form-actions">
                     <button type="submit" className="btn-submit">Guardar Item</button>

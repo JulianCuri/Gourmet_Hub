@@ -38,7 +38,11 @@ const ItemList = ({ items, deleteItem }) => {
                             <td>{item.name}</td>
                             <td>{capitalize(item.category)}</td>
                             <td>
-                                {item.image && <img src={item.image} alt={item.name} style={{ width: '100px', height: 'auto' }} />}
+                                {(item.image || item.imageUrl) ? (
+                                    <img src={item.image || item.imageUrl} alt={item.name} style={{ width: '100px', height: 'auto' }} />
+                                ) : (
+                                    <img src={'/images/logo192.png'} alt="placeholder" style={{ width: '100px', height: 'auto' }} />
+                                )}
                             </td>
                             <td className="actions-cell">
                                 <button onClick={() => handleDelete(item.id)} className="btn-delete">

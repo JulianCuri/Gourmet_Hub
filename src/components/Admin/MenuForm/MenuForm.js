@@ -30,22 +30,75 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
 
     const navigate = useNavigate();
 
+    // If we're editing but the menu list hasn't been loaded yet, show a brief loading state
+    const editingId = id ? String(id) : null;
+    const menuAvailable = editingId ? (menus || []).some(m => String(m.id) === editingId) : true;
+
     useEffect(() => {
-        setAvailableMainDishes(items.filter(i => i.category === 'Plato Principal'));
-        setAvailableDesserts(items.filter(i => i.category === 'Postre'));
-        setAvailableDrinks(items.filter(i => i.category === 'Bebida'));
+        setAvailableMainDishes((items || []).filter(i => i.category === 'Plato Principal'));
+        setAvailableDesserts((items || []).filter(i => i.category === 'Postre'));
+        setAvailableDrinks((items || []).filter(i => i.category === 'Bebida'));
 
         if (id) {
             setIsEditing(true);
-            const menuToEdit = menus.find(menu => menu.id === parseInt(id));
+            // Be tolerant: menu id could be number or string; try both
+            const menuToEdit = (menus || []).find(menu => menu.id === parseInt(id) || String(menu.id) === id);
+            console.debug('MenuForm: attempting to load menu for edit', { id, found: !!menuToEdit, menusCount: (menus || []).length });
             if (menuToEdit) {
                 setMenuId(menuToEdit.id);
-                setMenuDate(menuToEdit.date);
-                setEventType(menuToEdit.eventType);
-                setClosingDate(menuToEdit.closingDateTime);
-                setMainDishes(menuToEdit.mainDishes);
-                setDesserts(menuToEdit.desserts);
-                setDrinks(menuToEdit.drinks);
+                // Prefer explicit fields, but fall back to parsing description if missing
+                // description examples: "Cena 2025-10-13" or "almuerzo 2025-11-15 2025-11-15T17:55"
+                const description = menuToEdit.description || '';
+                let parsedDate = menuToEdit.date || undefined;
+                let parsedEventType = menuToEdit.eventType || undefined;
+                if (!parsedDate || !parsedEventType) {
+                    const parts = (description || '').split(/\s+/).filter(Boolean);
+                    if (!parsedEventType && parts.length >= 1) parsedEventType = parts[0];
+                    if (!parsedDate) {
+                        const dateToken = parts.find(p => /\d{4}-\d{2}-\d{2}/.test(p));
+                        if (dateToken) parsedDate = dateToken;
+                    }
+                }
+                setMenuDate(parsedDate || '');
+                setEventType(parsedEventType || 'almuerzo');
+
+                // closingDateTime in backend may be just a date or a full datetime. Convert to 'YYYY-MM-DDTHH:MM' for datetime-local input.
+                let rawClosing = menuToEdit.closingDateTime || menuToEdit.closingDate || '';
+                let closingForInput = '';
+                if (rawClosing) {
+                    if (rawClosing.includes('T')) {
+                        // keep up to minutes
+                        closingForInput = rawClosing.substring(0, 16);
+                    } else if (/^\d{4}-\d{2}-\d{2}$/.test(rawClosing)) {
+                        closingForInput = `${rawClosing}T00:00`;
+                    } else {
+                        // try to parse and format
+                        const d = new Date(rawClosing);
+                        if (!isNaN(d.getTime())) {
+                            const yyyy = d.getFullYear();
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const hh = String(d.getHours()).padStart(2, '0');
+                            const min = String(d.getMinutes()).padStart(2, '0');
+                            closingForInput = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+                        }
+                    }
+                }
+                setClosingDate(closingForInput);
+
+                // Ensure arrays of numeric ids
+                setMainDishes(Array.isArray(menuToEdit.mainDishes) ? menuToEdit.mainDishes.map(Number) : []);
+                setDesserts(Array.isArray(menuToEdit.desserts) ? menuToEdit.desserts.map(Number) : []);
+                setDrinks(Array.isArray(menuToEdit.drinks) ? menuToEdit.drinks.map(Number) : []);
+            } else {
+                // no menu found yet — clear fields so they don't show stale values
+                setMenuId(null);
+                setMenuDate('');
+                setEventType('almuerzo');
+                setClosingDate('');
+                setMainDishes([]);
+                setDesserts([]);
+                setDrinks([]);
             }
         }
     }, [id, items, menus]);
@@ -106,10 +159,14 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
 
     return (
         <div className="menu-form-container">
+            {isEditing && !menuAvailable ? (
+                <div style={{ padding: '2rem', textAlign: 'center' }}>Cargando menú…</div>
+            ) : (
             <div className="form-header">
                 <h1>{isEditing ? 'Editar Menú' : 'Agregar Nuevo Menú'}</h1>
                 <Link to="/administracion" className="btn-back">Volver a la lista</Link>
             </div>
+            )}
             <form className="menu-form" onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label htmlFor="menuDate">Fecha del Menú</label>
