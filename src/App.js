@@ -372,7 +372,21 @@ function App() {
   };
 
   const deleteMenu = (menuId) => {
-    setMenus((prevMenus) => (prevMenus || []).filter(menu => menu.id !== menuId));
+    (async () => {
+      try {
+        const resp = await fetch(`/api/menus/${menuId}`, { method: 'DELETE' });
+        if (!resp.ok && resp.status !== 204) {
+          const text = await resp.text();
+          throw new Error(text || `HTTP ${resp.status}`);
+        }
+        setMenus((prevMenus) => (prevMenus || []).filter(menu => menu.id !== menuId));
+        return true;
+      } catch (err) {
+        console.warn('Failed to delete menu from backend, falling back to local removal', err);
+        setMenus((prevMenus) => (prevMenus || []).filter(menu => menu.id !== menuId));
+        return false;
+      }
+    })();
   };
 
   const menusWithImages = Array.isArray(menus) ? menus.map(menu => {
