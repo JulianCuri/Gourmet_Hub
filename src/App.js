@@ -228,23 +228,90 @@ function App() {
     })();
   };
 
-  const addItem = (newItem) => {
+  const addItem = async (newItem) => {
     const isDuplicate = (items || []).some(
-        item => item.name.trim().toLowerCase() === newItem.name.trim().toLowerCase()
+      item => item.name && newItem.name && item.name.trim().toLowerCase() === newItem.name.trim().toLowerCase()
     );
 
     if (isDuplicate) {
-        alert('Ya existe un item con este nombre.');
-        return false;
+      alert('Ya existe un item con este nombre.');
+      return false;
     }
 
-    setItems(prevItems => [...(prevItems || []), { ...newItem, id: nextItemId }]);
-    setNextItemId(prevId => prevId + 1);
-    return true;
+    const dto = {
+      name: newItem.name,
+      price: newItem.price || 0.0,
+      category: newItem.category,
+      imageUrl: newItem.imageUrl || newItem.image || ''
+    };
+
+    try {
+      const resp = await fetch('/api/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(text || `HTTP ${resp.status}`);
+      }
+
+      const created = await resp.json();
+      const createdItem = { ...created, image: created.image || created.imageUrl || null };
+      setItems(prevItems => [...(prevItems || []), createdItem]);
+      setNextItemId(prevId => prevId + 1);
+      return true;
+    } catch (err) {
+      console.error('Failed to persist item to backend, saving locally:', err);
+      setItems(prevItems => [...(prevItems || []), { ...newItem, id: nextItemId }]);
+      setNextItemId(prevId => prevId + 1);
+      return true;
+    }
   };
 
-  const deleteItem = (itemId) => {
-    setItems((prevItems) => (prevItems || []).filter(item => item.id !== itemId));
+  const deleteItem = async (itemId) => {
+    try {
+      const resp = await fetch(`/api/items/${itemId}`, { method: 'DELETE' });
+      if (!resp.ok && resp.status !== 204) {
+        const text = await resp.text();
+        throw new Error(text || `HTTP ${resp.status}`);
+      }
+      setItems((prevItems) => (prevItems || []).filter(item => item.id !== itemId));
+      return true;
+    } catch (err) {
+      console.warn('Failed to delete item from backend, falling back to local removal', err);
+      setItems((prevItems) => (prevItems || []).filter(item => item.id !== itemId));
+      return false;
+    }
+  };
+
+  const updateItem = async (itemId, changes) => {
+    try {
+      const dto = {
+        name: changes.name,
+        price: changes.price,
+        category: changes.category,
+        imageUrl: changes.imageUrl || changes.image || ''
+      };
+      const resp = await fetch(`/api/items/${itemId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dto)
+      });
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(text || `HTTP ${resp.status}`);
+      }
+      const saved = await resp.json();
+      const normalized = { ...saved, image: saved.image || saved.imageUrl || null };
+      setItems(prevItems => (prevItems || []).map(it => it.id === normalized.id ? normalized : it));
+      return true;
+    } catch (err) {
+      console.error('Failed to update item on backend, applying local update', err);
+      setItems(prevItems => (prevItems || []).map(it => it.id === itemId ? { ...it, ...changes } : it));
+      return false;
+    }
   };
 
   const updateMenu = (updatedMenu) => {
@@ -331,6 +398,7 @@ function App() {
                         deleteMenu={deleteMenu}
                         items={items}
                         addItem={addItem}
+                        updateItem={updateItem}
                         deleteItem={deleteItem}
                       />} 
           />

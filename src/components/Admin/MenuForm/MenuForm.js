@@ -35,9 +35,16 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
     const menuAvailable = editingId ? (menus || []).some(m => String(m.id) === editingId) : true;
 
     useEffect(() => {
-        setAvailableMainDishes((items || []).filter(i => i.category === 'Plato Principal'));
-        setAvailableDesserts((items || []).filter(i => i.category === 'Postre'));
-        setAvailableDrinks((items || []).filter(i => i.category === 'Bebida'));
+        // Filter categories case-insensitively and allow partial matches so backend/other components
+        // can use different casing (e.g. 'plato principal' or 'Plato Principal') and still appear here.
+        const byCategory = (catToken) => (i) => {
+            const c = (i && i.category) ? String(i.category).toLowerCase() : '';
+            return c.includes(catToken);
+        };
+
+        setAvailableMainDishes((items || []).filter(byCategory('plato')));
+        setAvailableDesserts((items || []).filter(byCategory('postre')));
+        setAvailableDrinks((items || []).filter(byCategory('bebida')));
 
         if (id) {
             setIsEditing(true);

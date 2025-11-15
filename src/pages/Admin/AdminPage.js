@@ -7,7 +7,7 @@ import MenuForm from '../../components/Admin/MenuForm/MenuForm';
 import ItemList from '../../components/Admin/ItemList/ItemList';
 import ItemForm from '../../components/Admin/ItemForm/ItemForm';
 
-const AdminPage = ({ menus, addMenu, updateMenu, deleteMenu, items, addItem, deleteItem }) => {
+const AdminPage = ({ menus, addMenu, updateMenu, deleteMenu, items, addItem, updateItem, deleteItem }) => {
     const { width } = useWindowSize();
 
     if (width < 768) { // Breakpoint for mobile devices
@@ -24,7 +24,7 @@ const AdminPage = ({ menus, addMenu, updateMenu, deleteMenu, items, addItem, del
             <Routes>
                 <Route path="/" element={<MenuList menus={menus} deleteMenu={deleteMenu} />} />
                 <Route path="/agregar-menu" element={<MenuForm addMenu={addMenu} items={items} />} />
-                <Route path="/items" element={<ItemList items={items} deleteItem={deleteItem} />} />
+                <Route path="/items" element={<ItemList items={items} deleteItem={deleteItem} updateItem={updateItem} />} />
                 <Route path="/agregar-item" element={<ItemForm addItem={addItem} />} />
                 <Route path="/editar-menu/:id" element={<MenuForm addMenu={addMenu} updateMenu={updateMenu} items={items} menus={menus} />} />
             </Routes>

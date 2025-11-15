@@ -5,6 +5,7 @@ import './ItemForm.css';
 const ItemForm = ({ addItem }) => {
     const [name, setName] = useState('');
     const [category, setCategory] = useState('plato principal');
+    const [price, setPrice] = useState('0.00');
     const [imageUrl, setImageUrl] = useState('');
     const navigate = useNavigate();
 
@@ -19,7 +20,8 @@ const ItemForm = ({ addItem }) => {
             category,
             // Save the provided URL into both fields so older code and UI can read it
             image: imageUrl || '',
-            imageUrl: imageUrl || ''
+            imageUrl: imageUrl || '',
+            price: price ? parseFloat(price) : 0.0
         };
         const success = addItem(newItem);
         if (success) {
