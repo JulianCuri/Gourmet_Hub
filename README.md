@@ -1,3 +1,61 @@
+# Gourmet Hub
+
+Proyecto full-stack para el curso: frontend (React) + backend (Spring Boot).
+
+## Resumen
+- Frontend: Create React App en `gourmet-hub/` (dev server en `http://localhost:3000`).
+- Backend: Spring Boot en `gourmet-hub/backend` (servidor en `http://localhost:8080`).
+
+Este repositorio contiene el código fuente necesario para ejecutar localmente ambas partes.
+
+## Requisitos
+- Node.js (v16+ recomendado) y `npm`
+- Java 17+ y Maven
+
+## Instrucciones rápidas (después de clonar)
+
+1. Clonar el repositorio:
+
+```powershell
+git clone https://github.com/JulianCuri/Gourmet_Hub.git
+cd Gourmet_Hub
+```
+
+2. Instalar dependencias del frontend y arrancarlo (terminal 1):
+
+```powershell
+npm install
+npm start
+```
+
+Esto iniciará la app React en `http://localhost:3000`. La app hace llamadas a la API en `http://localhost:8080`.
+
+3. Ejecutar el backend (terminal 2):
+
+```powershell
+cd backend
+mvn -DskipTests spring-boot:run
+# opción: mvn -DskipTests spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+El backend expondrá los endpoints REST en `http://localhost:8080/api/*`.
+
+## Notas importantes
+- La base de datos usada en desarrollo es H2 en modo archivo y los ficheros se crean bajo `backend/data/`.
+- Para evitar problemas de bloqueo con H2 cuando ejecutes varias instancias, evita arrancar más de un proceso que use la misma carpeta `data` o usa el modo `AUTO_SERVER` (ver `backend/src/main/resources/application-dev.properties`).
+- Hemos añadido reglas a `.gitignore` para evitar subir artefactos/DB/logs: `backend/target/`, `backend/data/`, `backend/logs/`.
+
+## Qué contiene el repositorio
+- `src/` — código del frontend (CRA).
+- `backend/src/` — código fuente Java del backend (Spring Boot).
+- `backend/pom.xml` — Maven pom del backend.
+
+## Consejos para entregar al curso
+- Incluye en la descripción de la entrega los comandos anteriores para que el corrector pueda arrancar frontend y backend.
+- Si necesitas eliminar artefactos grandes del historial Git (jar, DBs), contactame y te ayudo con `git filter-repo` o BFG (nota: reescribe la historia del repo).
+
+## Contacto
+Si algo no arranca en tu máquina (errores de H2, puertos en uso, o dependencias faltantes) házmelo saber y te ayudo a diagnosticar.
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
