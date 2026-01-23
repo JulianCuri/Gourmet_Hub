@@ -3,6 +3,7 @@ package com.gourmethub.backend.controller;
 import com.gourmethub.backend.dto.ItemDTO;
 import com.gourmethub.backend.model.Item;
 import com.gourmethub.backend.service.ItemService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -55,21 +56,14 @@ public class ItemController {
 
     // Admin operations (for now not restricted; will add role checks when auth is ready)
     @PostMapping
-    public ResponseEntity<ItemDTO> create(@RequestBody ItemDTO dto) {
-        Item saved = itemService.save(fromDto(dto));
+    public ResponseEntity<ItemDTO> create(@Valid @RequestBody ItemDTO dto) {
+        Item saved = itemService.createFromDto(dto);
         return ResponseEntity.created(URI.create("/api/items/" + saved.getId())).body(toDto(saved));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ItemDTO> update(@PathVariable Long id, @RequestBody ItemDTO dto) {
-        Optional<Item> opt = itemService.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
-        Item item = opt.get();
-        item.setName(dto.getName());
-        item.setPrice(dto.getPrice());
-        item.setCategory(dto.getCategory());
-        item.setImageUrl(dto.getImageUrl());
-        Item saved = itemService.save(item);
+    public ResponseEntity<ItemDTO> update(@PathVariable Long id, @Valid @RequestBody ItemDTO dto) {
+        Item saved = itemService.updateFromDto(id, dto);
         return ResponseEntity.ok(toDto(saved));
     }
 

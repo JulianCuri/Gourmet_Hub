@@ -2,6 +2,8 @@ package com.gourmethub.backend.service;
 
 import com.gourmethub.backend.model.Item;
 import com.gourmethub.backend.repository.ItemRepository;
+import com.gourmethub.backend.dto.ItemDTO;
+import com.gourmethub.backend.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,6 +32,24 @@ public class ItemService {
 
     public Item save(Item item) {
         return itemRepository.save(item);
+    }
+
+    public Item createFromDto(ItemDTO dto) {
+        Item i = new Item();
+        i.setName(dto.getName());
+        i.setPrice(dto.getPrice());
+        i.setCategory(dto.getCategory());
+        i.setImageUrl(dto.getImageUrl());
+        return save(i);
+    }
+
+    public Item updateFromDto(Long id, ItemDTO dto) {
+        Item existing = findById(id).orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + id));
+        existing.setName(dto.getName());
+        existing.setPrice(dto.getPrice());
+        existing.setCategory(dto.getCategory());
+        existing.setImageUrl(dto.getImageUrl());
+        return save(existing);
     }
 
     public void deleteById(Long id) {

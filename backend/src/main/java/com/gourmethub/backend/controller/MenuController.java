@@ -1,9 +1,10 @@
 package com.gourmethub.backend.controller;
 
 import com.gourmethub.backend.dto.MenuDTO;
-import com.gourmethub.backend.model.Item;
 import com.gourmethub.backend.model.Menu;
+import com.gourmethub.backend.model.Item;
 import com.gourmethub.backend.service.MenuService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,16 +33,6 @@ public class MenuController {
         return d;
     }
 
-    private Menu fromDto(MenuDTO d) {
-        Menu m = new Menu();
-        m.setName(d.getName());
-        m.setDescription(d.getDescription());
-        m.setClosingDateTime(d.getClosingDateTime());
-        List<Item> items = menuService.findItemsForIds(d.getItemIds());
-        m.setItems(items);
-        return m;
-    }
-
     @GetMapping
     public List<MenuDTO> list() {
         return menuService.findAll().stream().map(this::toDto).collect(Collectors.toList());
@@ -54,20 +45,14 @@ public class MenuController {
     }
 
     @PostMapping
-    public ResponseEntity<MenuDTO> create(@RequestBody MenuDTO dto) {
-        Menu saved = menuService.save(fromDto(dto));
+    public ResponseEntity<MenuDTO> create(@Valid @RequestBody MenuDTO dto) {
+        Menu saved = menuService.createFromDto(dto);
         return ResponseEntity.created(URI.create("/api/menus/" + saved.getId())).body(toDto(saved));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MenuDTO> update(@PathVariable Long id, @RequestBody MenuDTO dto) {
-        Optional<Menu> opt = menuService.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.notFound().build();
-        Menu m = opt.get();
-        m.setName(dto.getName());
-        m.setDescription(dto.getDescription());
-        m.setItems(menuService.findItemsForIds(dto.getItemIds()));
-        Menu saved = menuService.save(m);
+    public ResponseEntity<MenuDTO> update(@PathVariable Long id, @Valid @RequestBody MenuDTO dto) {
+        Menu saved = menuService.updateFromDto(id, dto);
         return ResponseEntity.ok(toDto(saved));
     }
 

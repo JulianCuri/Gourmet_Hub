@@ -1,13 +1,22 @@
 package com.gourmethub.backend.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MenuDTO {
     private Long id;
+
+    @NotBlank(message = "El nombre del menú es obligatorio")
+    @Size(max = 200, message = "El nombre del menú no puede exceder 200 caracteres")
     private String name;
+
+    @Size(max = 1000, message = "La descripción no puede exceder 1000 caracteres")
     private String description;
+
     private List<Long> itemIds = new ArrayList<>();
+
     private String closingDateTime;
 
     public MenuDTO() {

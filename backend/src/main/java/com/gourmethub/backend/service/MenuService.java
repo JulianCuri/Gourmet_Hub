@@ -1,5 +1,8 @@
 package com.gourmethub.backend.service;
 
+import com.gourmethub.backend.dto.MenuDTO;
+import com.gourmethub.backend.exception.InvalidRequestException;
+import com.gourmethub.backend.exception.ResourceNotFoundException;
 import com.gourmethub.backend.model.Item;
 import com.gourmethub.backend.model.Menu;
 import com.gourmethub.backend.repository.ItemRepository;
@@ -34,6 +37,9 @@ public class MenuService {
     }
 
     public void deleteById(Long id) {
+        if (!menuRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Menu not found with id: " + id);
+        }
         menuRepository.deleteById(id);
     }
 
@@ -43,5 +49,26 @@ public class MenuService {
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
+    }
+
+    public Menu createFromDto(MenuDTO dto) {
+        if (dto == null) throw new InvalidRequestException("Menu data is required");
+        Menu m = new Menu();
+        m.setName(dto.getName());
+        m.setDescription(dto.getDescription());
+        m.setClosingDateTime(dto.getClosingDateTime());
+        List<Item> items = findItemsForIds(dto.getItemIds());
+        m.setItems(items);
+        return save(m);
+    }
+
+    public Menu updateFromDto(Long id, MenuDTO dto) {
+        Menu existing = findById(id).orElseThrow(() -> new ResourceNotFoundException("Menu not found with id: " + id));
+        existing.setName(dto.getName());
+        existing.setDescription(dto.getDescription());
+        existing.setClosingDateTime(dto.getClosingDateTime());
+        List<Item> items = findItemsForIds(dto.getItemIds());
+        existing.setItems(items);
+        return save(existing);
     }
 }
