@@ -187,45 +187,64 @@ function App() {
     }
   }, [nextItemId]);
 
-  const addMenu = (newMenu) => {
-    // Persist to backend and then update local state with created id
-    (async () => {
-      try {
-        const itemIds = [
-          ...(newMenu.mainDishes || []),
-          ...(newMenu.desserts || []),
-          ...(newMenu.drinks || []),
-        ];
-        const dto = {
-          name: newMenu.name,
-          description: `${newMenu.eventType || ''} ${newMenu.date || ''} ${newMenu.closingDateTime || ''}`.trim(),
-          closingDateTime: newMenu.closingDateTime,
-          itemIds,
-        };
+  const addMenu = async (newMenu) => {
+    const itemIds = [
+      ...(newMenu.mainDishes || []),
+      ...(newMenu.desserts || []),
+      ...(newMenu.drinks || []),
+    ];
+    const dto = {
+      name: newMenu.name,
+      description: `${newMenu.eventType || ''} ${newMenu.date || ''} ${newMenu.closingDateTime || ''}`.trim(),
+      closingDateTime: newMenu.closingDateTime,
+      itemIds,
+    };
 
-        const resp = await fetch('/api/menus', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(dto),
-        });
+    try {
+      const token = localStorage.getItem('authToken');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      const resp = await fetch('/api/menus', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(dto),
+      });
 
-        if (!resp.ok) {
-          const text = await resp.text();
-          throw new Error(text || `HTTP ${resp.status}`);
+      if (!resp.ok) {
+        // If backend returned structured validation JSON, propagate it so UI can show inline messages
+        if (resp.status === 400) {
+          try {
+            const json = await resp.json();
+            if (json && json.error === 'validation_error' && json.fields) {
+              const err = new Error('validation');
+              err.type = 'validation';
+              err.fields = json.fields;
+              throw err;
+            }
+          } catch (e) {
+            // fall through to generic handling
+          }
         }
-
-        const created = await resp.json();
-        // Merge backend id into frontend menu shape
-        const menuWithId = { ...newMenu, id: created.id };
-        setMenus(prevMenus => [...(prevMenus || []), menuWithId]);
-        setNextMenuId(prevId => prevId + 1);
-      } catch (err) {
-        console.error('Failed to save menu to backend:', err);
-        // fallback to local-only save so user doesn't lose work
-        setMenus(prevMenus => [...(prevMenus || []), { ...newMenu, id: nextMenuId }]);
-        setNextMenuId(prevId => prevId + 1);
+        const text = await resp.text();
+        throw new Error(text || `HTTP ${resp.status}`);
       }
-    })();
+
+      const created = await resp.json();
+      const menuWithId = { ...newMenu, id: created.id };
+      setMenus(prevMenus => [...(prevMenus || []), menuWithId]);
+      setNextMenuId(prevId => prevId + 1);
+      return menuWithId;
+    } catch (err) {
+      // For non-validation errors, fallback to local save so user doesn't lose work
+      if (err && err.type === 'validation') {
+        throw err; // propagate validation errors
+      }
+      console.error('Failed to save menu to backend, falling back to local save:', err);
+      const localSaved = { ...newMenu, id: nextMenuId };
+      setMenus(prevMenus => [...(prevMenus || []), localSaved]);
+      setNextMenuId(prevId => prevId + 1);
+      return localSaved;
+    }
   };
 
   const addItem = async (newItem) => {
@@ -246,13 +265,29 @@ function App() {
     };
 
     try {
+      const token = localStorage.getItem('authToken');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       const resp = await fetch('/api/items', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(dto)
       });
 
       if (!resp.ok) {
+        if (resp.status === 400) {
+          try {
+            const json = await resp.json();
+            if (json && json.error === 'validation_error' && json.fields) {
+              const err = new Error('validation');
+              err.type = 'validation';
+              err.fields = json.fields;
+              throw err;
+            }
+          } catch (e) {
+            // continue
+          }
+        }
         const text = await resp.text();
         throw new Error(text || `HTTP ${resp.status}`);
       }
@@ -261,18 +296,23 @@ function App() {
       const createdItem = { ...created, image: created.image || created.imageUrl || null };
       setItems(prevItems => [...(prevItems || []), createdItem]);
       setNextItemId(prevId => prevId + 1);
-      return true;
+      return createdItem;
     } catch (err) {
+      if (err && err.type === 'validation') throw err;
       console.error('Failed to persist item to backend, saving locally:', err);
-      setItems(prevItems => [...(prevItems || []), { ...newItem, id: nextItemId }]);
+      const local = { ...newItem, id: nextItemId };
+      setItems(prevItems => [...(prevItems || []), local]);
       setNextItemId(prevId => prevId + 1);
-      return true;
+      return local;
     }
   };
 
   const deleteItem = async (itemId) => {
     try {
-      const resp = await fetch(`/api/items/${itemId}`, { method: 'DELETE' });
+      const token = localStorage.getItem('authToken');
+      const headers = {};
+      if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      const resp = await fetch(`/api/items/${itemId}`, { method: 'DELETE', headers });
       if (!resp.ok && resp.status !== 204) {
         const text = await resp.text();
         throw new Error(text || `HTTP ${resp.status}`);
@@ -294,9 +334,12 @@ function App() {
         category: changes.category,
         imageUrl: changes.imageUrl || changes.image || ''
       };
+      const token = localStorage.getItem('authToken');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       const resp = await fetch(`/api/items/${itemId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(dto)
       });
       if (!resp.ok) {
@@ -330,9 +373,12 @@ function App() {
           closingDateTime: updatedMenu.closingDateTime || updatedMenu.closingDate || undefined
         };
 
+        const token = localStorage.getItem('authToken');
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
         const resp = await fetch(`/api/menus/${updatedMenu.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify(dto),
         });
 

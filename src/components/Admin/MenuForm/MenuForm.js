@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import './MenuForm.css';
 
@@ -27,6 +29,7 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
     const [availableMainDishes, setAvailableMainDishes] = useState([]);
     const [availableDesserts, setAvailableDesserts] = useState([]);
     const [availableDrinks, setAvailableDrinks] = useState([]);
+    const [errors, setErrors] = useState({});
 
     const navigate = useNavigate();
 
@@ -122,24 +125,22 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        if (!menuDate || !closingDate) {
-            alert('Por favor, complete todos los campos de fecha.');
-            return;
+        // Client-side validations -> collect into errors to display inline
+        const newErrors = {};
+        if (!menuDate || !closingDate) newErrors.menuDate = 'Complete las fechas del menú.';
+        if (menuDate && new Date(menuDate) < new Date(new Date().toDateString())) newErrors.menuDate = 'La fecha del menú no puede ser anterior a la fecha actual.';
+        // Weekend rule: do not allow Saturday(6) or Sunday(0)
+        if (menuDate) {
+            const d = new Date(menuDate);
+            const day = d.getDay();
+            const isWeekend = (day === 0 || day === 6);
+            if (isWeekend) newErrors.menuDate = 'No se permiten menús en fin de semana.';
         }
-        if (new Date(menuDate) < new Date(new Date().toDateString())) {
-            alert('La fecha del menú no puede ser anterior a la fecha actual.');
-            return;
-        }
-        if (mainDishes.length < 3 || mainDishes.length > 4) {
-            alert('Debe seleccionar entre 3 y 4 platos principales.');
-            return;
-        }
-        if (desserts.length < 3 || desserts.length > 4) {
-            alert('Debe seleccionar entre 3 y 4 postres.');
-            return;
-        }
-        if (drinks.length < 3 || drinks.length > 6) {
-            alert('Debe seleccionar entre 3 y 6 bebidas.');
+        if (mainDishes.length < 3 || mainDishes.length > 4) newErrors.mainDishes = 'Seleccione entre 3 y 4 platos principales.';
+        if (desserts.length < 3 || desserts.length > 4) newErrors.desserts = 'Seleccione entre 3 y 4 postres.';
+        if (drinks.length < 3 || drinks.length > 6) newErrors.drinks = 'Seleccione entre 3 y 6 bebidas.';
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
 
@@ -154,14 +155,25 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
             images: [], // Placeholder for images
         };
 
-        if (isEditing) {
-            updateMenu({ ...menuData, id: menuId });
-            alert('Menú actualizado con éxito.');
-        } else {
-            addMenu(menuData);
-            alert('Menú guardado con éxito.');
-        }
-        navigate('/administracion');
+        (async () => {
+            setErrors({});
+            try {
+                if (isEditing) {
+                    await updateMenu({ ...menuData, id: menuId });
+                } else {
+                    await addMenu(menuData);
+                }
+                navigate('/administracion');
+            } catch (err) {
+                if (err && err.type === 'validation' && err.fields) {
+                    setErrors(err.fields);
+                } else {
+                    // fallback: show console and keep form visible
+                    console.error('Error guardando menú:', err);
+                    setErrors({ general: 'Error al guardar el menú. Intente de nuevo.' });
+                }
+            }
+        })();
     };
 
     return (
@@ -177,14 +189,38 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
             <form className="menu-form" onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label htmlFor="menuDate">Fecha del Menú</label>
-                    <input
-                        type="date"
+                    <DatePicker
                         id="menuDate"
-                        name="menuDate"
-                        required
-                        value={menuDate}
-                        onChange={(e) => setMenuDate(e.target.value)}
+                        selected={menuDate ? new Date(menuDate) : null}
+                        onChange={(date) => {
+                            if (date) {
+                                const day = date.getDay();
+                                const isWeekend = (day === 0 || day === 6);
+                                if (isWeekend) {
+                                    // datepicker will have weekends disabled, but keep guard just in case
+                                    setMenuDate('');
+                                    setErrors(prev => ({ ...prev, menuDate: 'No se permiten menús en fin de semana.' }));
+                                    return;
+                                }
+                                const yyyy = date.getFullYear();
+                                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                                const dd = String(date.getDate()).padStart(2, '0');
+                                setMenuDate(`${yyyy}-${mm}-${dd}`);
+                                setErrors(prev => { const copy = { ...prev }; delete copy.menuDate; return copy; });
+                            } else {
+                                setMenuDate('');
+                            }
+                        }}
+                        dateFormat="yyyy-MM-dd"
+                        placeholderText="Seleccione fecha"
+                        minDate={new Date()}
+                        filterDate={(date) => {
+                            const day = date.getDay();
+                            return day !== 0 && day !== 6; // disable Sundays(0) and Saturdays(6)
+                        }}
+                        className="react-datepicker-input"
                     />
+                    {errors.menuDate && <div className="field-error">{errors.menuDate}</div>}
                 </div>
                 <div className="form-group">
                     <label htmlFor="eventType">Tipo de Evento</label>
@@ -203,6 +239,7 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
                         value={closingDate}
                         onChange={(e) => setClosingDate(e.target.value)}
                     />
+                    {errors.closingDate && <div className="field-error">{errors.closingDate}</div>}
                 </div>
 
                 <div className="form-group">
@@ -220,6 +257,7 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
                                 <label htmlFor={`main-${item.id}`}>{item.name}</label>
                             </div>
                         ))}
+                        {errors.mainDishes && <div className="field-error">{errors.mainDishes}</div>}
                     </div>
                 </div>
 
@@ -238,6 +276,7 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
                                 <label htmlFor={`dessert-${item.id}`}>{item.name}</label>
                             </div>
                         ))}
+                        {errors.desserts && <div className="field-error">{errors.desserts}</div>}
                     </div>
                 </div>
 
@@ -256,6 +295,7 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
                                 <label htmlFor={`drink-${item.id}`}>{item.name}</label>
                             </div>
                         ))}
+                        {errors.drinks && <div className="field-error">{errors.drinks}</div>}
                     </div>
                 </div>
 

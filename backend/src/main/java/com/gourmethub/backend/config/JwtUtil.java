@@ -23,8 +23,22 @@ public class JwtUtil {
     private long expirationMs;
 
     private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        return Keys.hmacShaKeyFor(keyBytes);
+        try {
+            byte[] keyBytes = Decoders.BASE64.decode(secret);
+            if (keyBytes.length >= 32) {
+                return Keys.hmacShaKeyFor(keyBytes);
+            }
+        } catch (Exception ignored) {
+            // fall through to derive a 256-bit key
+        }
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] derived = digest.digest(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return Keys.hmacShaKeyFor(derived);
+        } catch (java.security.NoSuchAlgorithmException e) {
+            // last-resort: use JJWT helper to generate a key
+            return Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        }
     }
 
     public String generateToken(String email, Set<String> roles) {

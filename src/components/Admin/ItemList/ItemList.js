@@ -27,6 +27,7 @@ const ItemList = ({ items, deleteItem }) => {
                         <th>Id</th>
                         <th>Nombre</th>
                         <th>Categoría</th>
+                        <th>Precio</th>
                         <th>Imagen</th>
                         <th>Acciones</th>
                     </tr>
@@ -38,6 +39,9 @@ const ItemList = ({ items, deleteItem }) => {
                             <td>{item.name}</td>
                             <td>{capitalize(item.category)}</td>
                             <td>
+                                {item.price != null ? (`$${Number(item.price).toFixed(2)}`) : '-'}
+                            </td>
+                            <td>
                                 {(item.image || item.imageUrl) ? (
                                     <img src={item.image || item.imageUrl} alt={item.name} style={{ width: '100px', height: 'auto' }} />
                                 ) : (
@@ -45,6 +49,7 @@ const ItemList = ({ items, deleteItem }) => {
                                 )}
                             </td>
                             <td className="actions-cell">
+                                <Link to={`/administracion/editar-item/${item.id}`} className="btn-edit">Editar</Link>
                                 <button onClick={() => handleDelete(item.id)} className="btn-delete">
                                     Eliminar
                                 </button>
@@ -52,7 +57,7 @@ const ItemList = ({ items, deleteItem }) => {
                         </tr>
                     )) : (
                         <tr>
-                            <td colSpan="5">No hay items para mostrar.</td>
+                            <td colSpan="6">No hay items para mostrar.</td>
                         </tr>
                     )}
                 </tbody>

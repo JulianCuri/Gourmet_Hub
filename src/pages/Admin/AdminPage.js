@@ -6,6 +6,7 @@ import MenuList from '../../components/Admin/MenuList/MenuList';
 import MenuForm from '../../components/Admin/MenuForm/MenuForm';
 import ItemList from '../../components/Admin/ItemList/ItemList';
 import ItemForm from '../../components/Admin/ItemForm/ItemForm';
+import Login from '../../components/Auth/Login';
 
 const AdminPage = ({ menus, addMenu, updateMenu, deleteMenu, items, addItem, updateItem, deleteItem }) => {
     const { width } = useWindowSize();
@@ -26,6 +27,8 @@ const AdminPage = ({ menus, addMenu, updateMenu, deleteMenu, items, addItem, upd
                 <Route path="/agregar-menu" element={<MenuForm addMenu={addMenu} items={items} />} />
                 <Route path="/items" element={<ItemList items={items} deleteItem={deleteItem} updateItem={updateItem} />} />
                 <Route path="/agregar-item" element={<ItemForm addItem={addItem} />} />
+                    <Route path="/login" element={<Login />} />
+                <Route path="/editar-item/:id" element={<ItemForm addItem={addItem} updateItem={updateItem} items={items} />} />
                 <Route path="/editar-menu/:id" element={<MenuForm addMenu={addMenu} updateMenu={updateMenu} items={items} menus={menus} />} />
             </Routes>
         </AdminLayout>

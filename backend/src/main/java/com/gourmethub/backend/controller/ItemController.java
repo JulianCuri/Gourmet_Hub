@@ -12,6 +12,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @RestController
 @RequestMapping("/api/items")
@@ -23,11 +26,25 @@ public class ItemController {
         this.itemService = itemService;
     }
 
+    private boolean isAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        for (GrantedAuthority ga : auth.getAuthorities()) {
+            if ("ROLE_ADMIN".equals(ga.getAuthority())) return true;
+        }
+        return false;
+    }
+
     private ItemDTO toDto(Item i) {
         ItemDTO d = new ItemDTO();
         d.setId(i.getId());
         d.setName(i.getName());
-        d.setPrice(i.getPrice());
+        // Only expose price to admins; for non-admins return null so UI won't show it
+        if (isAdmin()) {
+            d.setPrice(i.getPrice());
+        } else {
+            d.setPrice(null);
+        }
         d.setCategory(i.getCategory());
         d.setImageUrl(i.getImageUrl());
         return d;
@@ -69,7 +86,7 @@ public class ItemController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        itemService.deleteById(id);
+        itemService.deleteByIdAuthorized(id);
         return ResponseEntity.noContent().build();
     }
 

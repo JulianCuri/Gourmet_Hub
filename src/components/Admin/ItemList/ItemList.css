@@ -48,7 +48,26 @@
     text-align: right;
 }
 
+.btn-edit {
+    display: inline-block;
+    background-color: #3498db;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-right: 0.75rem;
+    transition: background-color 0.2s;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-edit:hover {
+    background-color: #2b85c6;
+}
+
 .btn-delete {
+    display: inline-block;
     background-color: #e74c3c;
     color: white;
     border: none;
@@ -56,8 +75,20 @@
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.2s;
+    font-weight: bold;
 }
 
 .btn-delete:hover {
     background-color: #c0392b;
+}
+
+/* Stronger, more specific selectors to avoid being overridden by other styles */
+.item-table .actions-cell > .btn-edit,
+.item-table .actions-cell > .btn-delete {
+    display: inline-block !important;
+    vertical-align: middle !important;
+}
+
+.item-table .actions-cell > .btn-edit {
+    margin-right: 0.9rem !important;
 }

@@ -11,7 +11,6 @@ const AdminLayout = ({ children }) => {
             <Header />
             <div className="admin-main-section">
                 <aside className="admin-sidebar">
-                    
                     <nav className="admin-nav">
                         <NavLink to="/administracion" end>Lista de Menús</NavLink>
                         <NavLink to="/administracion/items">Lista de Items</NavLink>

@@ -8,6 +8,7 @@ import com.gourmethub.backend.model.Menu;
 import com.gourmethub.backend.repository.ItemRepository;
 import com.gourmethub.backend.repository.MenuRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,7 @@ public class MenuService {
         return menuRepository.save(menu);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteById(Long id) {
         if (!menuRepository.existsById(id)) {
             throw new ResourceNotFoundException("Menu not found with id: " + id);
@@ -51,6 +53,7 @@ public class MenuService {
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public Menu createFromDto(MenuDTO dto) {
         if (dto == null) throw new InvalidRequestException("Menu data is required");
         Menu m = new Menu();
@@ -62,6 +65,7 @@ public class MenuService {
         return save(m);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public Menu updateFromDto(Long id, MenuDTO dto) {
         Menu existing = findById(id).orElseThrow(() -> new ResourceNotFoundException("Menu not found with id: " + id));
         existing.setName(dto.getName());

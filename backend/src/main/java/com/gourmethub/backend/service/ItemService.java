@@ -5,6 +5,7 @@ import com.gourmethub.backend.repository.ItemRepository;
 import com.gourmethub.backend.dto.ItemDTO;
 import com.gourmethub.backend.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Optional;
@@ -50,6 +51,10 @@ public class ItemService {
         existing.setCategory(dto.getCategory());
         existing.setImageUrl(dto.getImageUrl());
         return save(existing);
+    }
+
+    public void deleteByIdAuthorized(Long id) {
+        deleteById(id);
     }
 
     public void deleteById(Long id) {

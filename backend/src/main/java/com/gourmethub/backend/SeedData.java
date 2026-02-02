@@ -4,6 +4,7 @@ import com.gourmethub.backend.model.Item;
 import com.gourmethub.backend.model.Menu;
 import com.gourmethub.backend.service.ItemService;
 import com.gourmethub.backend.service.MenuService;
+import com.gourmethub.backend.service.UserService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +17,7 @@ import java.util.List;
 public class SeedData {
 
     @Bean
-    CommandLineRunner init(ItemService itemService, MenuService menuService) {
+    CommandLineRunner init(ItemService itemService, MenuService menuService, UserService userService) {
         return args -> {
             // Seed items if none exist (based on gourmet-hub/src/mock/items.js)
             if (itemService.findAll().isEmpty()) {
@@ -132,6 +133,24 @@ public class SeedData {
                         menuService.save(m);
                     }
                 }
+            }
+            // Seed an admin user for course grading convenience (email: admin@example.com, password: admin)
+            try {
+                var adminOpt = userService.findByEmail("admin@example.com");
+                if (adminOpt.isEmpty()) {
+                    com.gourmethub.backend.model.User admin = new com.gourmethub.backend.model.User();
+                    admin.setNombre("Admin");
+                    admin.setApellido("User");
+                    admin.setEmail("admin@example.com");
+                    admin.setPassword("admin");
+                    java.util.Set<String> roles = new java.util.HashSet<>();
+                    roles.add("ROLE_ADMIN");
+                    admin.setRoles(roles);
+                    userService.saveUser(admin);
+                    System.out.println("Seeded admin user: admin@example.com / admin");
+                }
+            } catch (Exception ex) {
+                System.out.println("Could not seed admin user: " + ex.getMessage());
             }
         };
     }

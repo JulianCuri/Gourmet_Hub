@@ -49,6 +49,26 @@
   font-weight: bold;
 }
 
+.header-connected {
+  display: flex;
+  align-items: center;
+}
+
+.btn-admin-panel {
+  margin-right: 0.75rem;
+  background-color: var(--primary-color);
+  color: var(--white);
+  padding: 0.45rem 0.9rem;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-admin-panel:hover {
+  background-color: var(--primary-color-dark);
+}
+
 .btn-primary {
   background-color: var(--accent-color);
   color: var(--white);
