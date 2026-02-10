@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import Header from './components/Header/Header';
 import Main from './components/Main/Main';
 import Footer from './components/Footer/Footer';
 import AdminPage from './pages/Admin/AdminPage';
+import Register from './components/Auth/Register';
+import NotAuthorizedAdmin from './components/Auth/NotAuthorizedAdmin';
 // initial data is now loaded from the backend; fall back to localStorage if backend not available
 import MenuReservation from './components/MenuReservation/MenuReservation';
 
@@ -66,14 +68,17 @@ function App() {
   // On mount try to load items and menus from backend; if that fails, the app will continue
   // using values from localStorage (if any) or empty arrays.
   useEffect(() => {
-    (async () => {
+    const fetchData = async () => {
       try {
+        const token = localStorage.getItem('authToken');
+        const headers = {};
+        if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
         const [itemsResp, menusResp] = await Promise.all([
-          fetch('/api/items'),
-          fetch('/api/menus')
+          fetch('/api/items', { headers }),
+          fetch('/api/menus', { headers })
         ]);
 
-          if (itemsResp.ok && menusResp.ok) {
+        if (itemsResp.ok && menusResp.ok) {
           const itemsJsonRaw = await itemsResp.json();
           const menusJson = await menusResp.json();
           // normalize items so frontend always reads `image` (fall back to imageUrl)
@@ -108,10 +113,10 @@ function App() {
               }
             });
 
-            // Parse description for eventType and date/closingDateTime when present
+            // Prefer explicit closingDateTime returned by backend; otherwise parse description
             let date = undefined;
             let eventType = undefined;
-            let closingDateTime = undefined;
+            let closingDateTime = mdto.closingDateTime || undefined;
             if (mdto.description) {
               // e.g. "Cena 2025-10-13" or "almuerzo 2025-11-15 2025-11-15T17:55"
               const parts = mdto.description.split(/\s+/).filter(Boolean);
@@ -119,12 +124,14 @@ function App() {
               // find an ISO date-like token
               const dateToken = parts.find(p => /\d{4}-\d{2}-\d{2}/.test(p));
               if (dateToken) date = dateToken;
-              // find datetime token with T
-              const dtToken = parts.find(p => /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(p));
-              if (dtToken) closingDateTime = dtToken;
-              // fallback: if we have a date but no explicit datetime, set midnight of that date
-              if (!closingDateTime && date) {
-                closingDateTime = `${date}T00:00`;
+              // find datetime token with T (only used if backend didn't provide closingDateTime)
+              if (!closingDateTime) {
+                const dtToken = parts.find(p => /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(p));
+                if (dtToken) closingDateTime = dtToken;
+                // fallback: if we have a date but no explicit datetime, set midnight of that date
+                if (!closingDateTime && date) {
+                  closingDateTime = `${date}T00:00`;
+                }
               }
             }
 
@@ -152,7 +159,18 @@ function App() {
       } catch (err) {
         console.warn('Failed to fetch items/menus from backend, continuing with local data', err);
       }
-    })();
+    };
+
+    fetchData();
+
+    const onAuthChanged = () => {
+      // refetch so admin prices and menus are updated after login/logout
+      fetchData();
+    };
+    window.addEventListener('authChanged', onAuthChanged);
+    window.addEventListener('storage', onAuthChanged);
+
+    return () => { window.removeEventListener('authChanged', onAuthChanged); window.removeEventListener('storage', onAuthChanged); };
   }, []);
 
   useEffect(() => {
@@ -294,7 +312,22 @@ function App() {
 
       const created = await resp.json();
       const createdItem = { ...created, image: created.image || created.imageUrl || null };
-      setItems(prevItems => [...(prevItems || []), createdItem]);
+      // refetch full items list to ensure admin-only fields (like price) are present
+      try {
+        const token2 = localStorage.getItem('authToken');
+        const headers2 = {};
+        if (token2) headers2['Authorization'] = token2.startsWith('Bearer ') ? token2 : `Bearer ${token2}`;
+        const itemsResp = await fetch('/api/items', { headers: headers2 });
+        if (itemsResp.ok) {
+          const itemsJsonRaw = await itemsResp.json();
+          const itemsJson = (itemsJsonRaw || []).map(i => ({ ...i, image: i.image || i.imageUrl || null }));
+          setItems(itemsJson);
+        } else {
+          setItems(prevItems => [...(prevItems || []), createdItem]);
+        }
+      } catch (e) {
+        setItems(prevItems => [...(prevItems || []), createdItem]);
+      }
       setNextItemId(prevId => prevId + 1);
       return createdItem;
     } catch (err) {
@@ -449,18 +482,75 @@ function App() {
         <Routes>
           <Route path="/" element={<PublicLayout menus={menusWithImages} items={items} />} />
           <Route path="/menu/:id" element={<MenuReservation menus={menus} items={items} />} />
-          <Route 
-            path="/administracion/*" 
-            element={<AdminPage 
-                        menus={menus} 
-                        addMenu={addMenu} 
-                        updateMenu={updateMenu}
-                        deleteMenu={deleteMenu}
-                        items={items}
-                        addItem={addItem}
-                        updateItem={updateItem}
-                        deleteItem={deleteItem}
-                      />} 
+          <Route path="/register" element={<Register />} />
+          <Route
+            path="/administracion/*"
+            element={
+              (() => {
+                // best-effort admin check by decoding JWT payload from localStorage
+                try {
+                  const token = localStorage.getItem('authToken');
+                  // allow the internal login page to render even when no token (avoid redirect loop)
+                  const currentPath = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
+                  if (!token) {
+                    if (currentPath && currentPath.startsWith('/administracion/login')) {
+                      return <AdminPage
+                                menus={menus}
+                                addMenu={addMenu}
+                                updateMenu={updateMenu}
+                                deleteMenu={deleteMenu}
+                                items={items}
+                                addItem={addItem}
+                                updateItem={updateItem}
+                                deleteItem={deleteItem}
+                              />;
+                    }
+                    return <Navigate to="/administracion/login" replace />;
+                  }
+                  const t = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+                  const payload = t.split('.')[1];
+                  const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+                  const json = JSON.parse(decodeURIComponent(escape(window.atob(base64))));
+                  const isAdmin = (Array.isArray(json.roles) && json.roles.includes('ROLE_ADMIN'))
+                    || (Array.isArray(json.authorities) && json.authorities.includes('ROLE_ADMIN'))
+                    || (typeof json.role === 'string' && json.role.toLowerCase().includes('admin'))
+                    || (typeof json.roles === 'string' && json.roles.toLowerCase().includes('admin'));
+
+                  if (isAdmin) {
+                    return <AdminPage
+                              menus={menus}
+                              addMenu={addMenu}
+                              updateMenu={updateMenu}
+                              deleteMenu={deleteMenu}
+                              items={items}
+                              addItem={addItem}
+                              updateItem={updateItem}
+                              deleteItem={deleteItem}
+                            />;
+                  }
+
+                  // logged-in but not admin -> show friendly not-authorized page
+                  return <NotAuthorizedAdmin />;
+                } catch (e) {
+                  // ignore and fallthrough to redirect
+                }
+                // if not admin, allow login route to render; otherwise redirect to login
+                const path = (typeof window !== 'undefined' && window.location && window.location.pathname) ? window.location.pathname : '';
+                if (path && path.startsWith('/administracion/login')) {
+                  return <AdminPage
+                            menus={menus}
+                            addMenu={addMenu}
+                            updateMenu={updateMenu}
+                            deleteMenu={deleteMenu}
+                            items={items}
+                            addItem={addItem}
+                            updateItem={updateItem}
+                            deleteItem={deleteItem}
+                          />;
+                }
+                return <Navigate to="/administracion/login" replace />;
+              })()
+            }
           />
         </Routes>
       </div>

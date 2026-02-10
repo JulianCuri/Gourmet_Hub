@@ -6,3 +6,5 @@
 .login-form .form-actions { text-align:right }
 .field-error { color:#b00020; margin-top:0.5rem }
 .btn-submit { background:var(--primary-color); color:#fff; border:none; padding:8px 14px; border-radius:4px }
+.
+.btn-back { background:#7f8c8d; color:#fff; border:none; padding:8px 12px; border-radius:4px; margin-right:8px }

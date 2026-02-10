@@ -4,13 +4,21 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import './MenuForm.css';
 
-const getFormattedMenuName = (eventType, menuDateString) => {
-    const [year, month, day] = menuDateString.split('-').map(Number);
-    const date = new Date(year, month - 1, day);
-    const options = { weekday: 'long', day: '2-digit', month: '2-digit', timeZone: 'UTC' };
-    const formattedDate = date.toLocaleDateString('es-ES', options);
-    const [dayOfWeek, datePart] = formattedDate.split(' ');
-    const capitalizedDayOfWeek = dayOfWeek.charAt(0).toUpperCase() + dayOfWeek.slice(1);
+const getFormattedMenuName = (eventType, menuDateInput) => {
+    // menuDateInput can be a Date or a string 'YYYY-MM-DD'
+    let date;
+    if (!menuDateInput) return `Menú ${eventType}`;
+    if (menuDateInput instanceof Date) {
+        date = menuDateInput;
+    } else if (typeof menuDateInput === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(menuDateInput)) {
+        const [year, month, day] = menuDateInput.split('-').map(Number);
+        date = new Date(year, month - 1, day);
+    } else {
+        date = new Date(menuDateInput);
+    }
+    const weekday = date.toLocaleDateString('es-ES', { weekday: 'long' });
+    const datePart = date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+    const capitalizedDayOfWeek = weekday.charAt(0).toUpperCase() + weekday.slice(1);
     return `Menú ${eventType.charAt(0).toUpperCase() + eventType.slice(1)} ${capitalizedDayOfWeek} ${datePart}`;
 };
 
@@ -19,7 +27,7 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
     const [isEditing, setIsEditing] = useState(false);
 
     const [menuId, setMenuId] = useState(null);
-    const [menuDate, setMenuDate] = useState('');
+    const [menuDate, setMenuDate] = useState(null);
     const [eventType, setEventType] = useState('almuerzo');
     const [closingDate, setClosingDate] = useState('');
     const [mainDishes, setMainDishes] = useState([]);
@@ -69,7 +77,16 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
                         if (dateToken) parsedDate = dateToken;
                     }
                 }
-                setMenuDate(parsedDate || '');
+                // parsedDate expected as 'YYYY-MM-DD' -> convert to local Date to avoid UTC parse offset
+                if (parsedDate && typeof parsedDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(parsedDate)) {
+                    const [y, m, d] = parsedDate.split('-').map(Number);
+                    setMenuDate(new Date(y, m - 1, d));
+                } else if (parsedDate) {
+                    const parsed = new Date(parsedDate);
+                    setMenuDate(!isNaN(parsed.getTime()) ? parsed : null);
+                } else {
+                    setMenuDate(null);
+                }
                 setEventType(parsedEventType || 'almuerzo');
 
                 // closingDateTime in backend may be just a date or a full datetime. Convert to 'YYYY-MM-DDTHH:MM' for datetime-local input.
@@ -103,7 +120,7 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
             } else {
                 // no menu found yet — clear fields so they don't show stale values
                 setMenuId(null);
-                setMenuDate('');
+                setMenuDate(null);
                 setEventType('almuerzo');
                 setClosingDate('');
                 setMainDishes([]);
@@ -128,11 +145,13 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
         // Client-side validations -> collect into errors to display inline
         const newErrors = {};
         if (!menuDate || !closingDate) newErrors.menuDate = 'Complete las fechas del menú.';
-        if (menuDate && new Date(menuDate) < new Date(new Date().toDateString())) newErrors.menuDate = 'La fecha del menú no puede ser anterior a la fecha actual.';
-        // Weekend rule: do not allow Saturday(6) or Sunday(0)
         if (menuDate) {
-            const d = new Date(menuDate);
-            const day = d.getDay();
+            // normalize to local date start for comparison
+            const selected = new Date(menuDate.getFullYear(), menuDate.getMonth(), menuDate.getDate());
+            const today = new Date();
+            const todayZero = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            if (selected < todayZero) newErrors.menuDate = 'La fecha del menú no puede ser anterior a la fecha actual.';
+            const day = selected.getDay();
             const isWeekend = (day === 0 || day === 6);
             if (isWeekend) newErrors.menuDate = 'No se permiten menús en fin de semana.';
         }
@@ -146,7 +165,8 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
 
         const menuData = {
             name: getFormattedMenuName(eventType, menuDate),
-            date: menuDate,
+            // send date as YYYY-MM-DD string to backend
+            date: menuDate ? `${menuDate.getFullYear()}-${String(menuDate.getMonth() + 1).padStart(2, '0')}-${String(menuDate.getDate()).padStart(2, '0')}` : null,
             eventType,
             closingDateTime: closingDate,
             mainDishes,
@@ -191,27 +211,23 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
                     <label htmlFor="menuDate">Fecha del Menú</label>
                     <DatePicker
                         id="menuDate"
-                        selected={menuDate ? new Date(menuDate) : null}
+                        selected={menuDate}
                         onChange={(date) => {
                             if (date) {
                                 const day = date.getDay();
                                 const isWeekend = (day === 0 || day === 6);
                                 if (isWeekend) {
-                                    // datepicker will have weekends disabled, but keep guard just in case
-                                    setMenuDate('');
+                                    setMenuDate(null);
                                     setErrors(prev => ({ ...prev, menuDate: 'No se permiten menús en fin de semana.' }));
                                     return;
                                 }
-                                const yyyy = date.getFullYear();
-                                const mm = String(date.getMonth() + 1).padStart(2, '0');
-                                const dd = String(date.getDate()).padStart(2, '0');
-                                setMenuDate(`${yyyy}-${mm}-${dd}`);
+                                setMenuDate(date);
                                 setErrors(prev => { const copy = { ...prev }; delete copy.menuDate; return copy; });
                             } else {
-                                setMenuDate('');
+                                setMenuDate(null);
                             }
                         }}
-                        dateFormat="yyyy-MM-dd"
+                        dateFormat="dd/MM/yyyy"
                         placeholderText="Seleccione fecha"
                         minDate={new Date()}
                         filterDate={(date) => {

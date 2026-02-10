@@ -6,6 +6,7 @@ import com.gourmethub.backend.dto.AuthResponse;
 import com.gourmethub.backend.model.User;
 import com.gourmethub.backend.service.UserService;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.Valid;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,13 +28,17 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody AuthRequest req) {
+    public ResponseEntity<?> register(@Valid @RequestBody AuthRequest req) {
         if (userService.findByEmail(req.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Email ya registrado");
         }
+        // Basic server-side validation (in addition to DTO annotations)
+        if (req.getNombre() == null || req.getNombre().isBlank() || req.getApellido() == null || req.getApellido().isBlank()) {
+            return ResponseEntity.badRequest().body("Nombre y apellido son obligatorios");
+        }
         User u = new User();
-        u.setNombre("");
-        u.setApellido("");
+        u.setNombre(req.getNombre());
+        u.setApellido(req.getApellido());
         u.setEmail(req.getEmail());
         u.setPassword(req.getPassword());
         Set<String> roles = new HashSet<>();
@@ -52,6 +57,6 @@ public class AuthController {
             return ResponseEntity.status(401).body("Credenciales inválidas");
         }
         String token = jwtUtil.generateToken(user.getEmail(), user.getRoles());
-        return ResponseEntity.ok(new AuthResponse(token, user.getEmail()));
+        return ResponseEntity.ok(new AuthResponse(token, user.getEmail(), user.getNombre(), user.getApellido()));
     }
 }

@@ -13,7 +13,7 @@ function Header() {
     const onAuth = () => read();
     window.addEventListener('authChanged', onAuth);
     // listen for storage events (when auth changed in another tab)
-    const onStorage = (ev) => { if (ev.key === 'authEmail' || ev.key === 'authToken') read(); };
+    const onStorage = (ev) => { if (ev.key === 'authEmail' || ev.key === 'authToken' || ev.key === 'authName' || ev.key === 'authInitials') read(); };
     window.addEventListener('storage', onStorage);
     return () => { window.removeEventListener('authChanged', onAuth); window.removeEventListener('storage', onStorage); };
   }, []);
@@ -22,6 +22,8 @@ function Header() {
   const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const [authName, setAuthName] = useState(null);
+  const [authInitials, setAuthInitials] = useState(null);
 
   useEffect(() => {
     const checkAdmin = () => {
@@ -51,6 +53,15 @@ function Header() {
     return () => { window.removeEventListener('authChanged', onAuth); window.removeEventListener('storage', onAuth); };
   }, []);
 
+  useEffect(() => {
+    setAuthName(localStorage.getItem('authName'));
+    setAuthInitials(localStorage.getItem('authInitials'));
+    const onAuth = () => { setAuthName(localStorage.getItem('authName')); setAuthInitials(localStorage.getItem('authInitials')); };
+    window.addEventListener('authChanged', onAuth);
+    window.addEventListener('storage', onAuth);
+    return () => { window.removeEventListener('authChanged', onAuth); window.removeEventListener('storage', onAuth); };
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('authEmail');
@@ -75,12 +86,17 @@ function Header() {
             {isAdmin && location && location.pathname === '/' ? (
               <button className="btn btn-admin-panel" onClick={() => navigate('/administracion')}>Ir a panel</button>
             ) : null}
-            <span className="connected-text">Conectado como {email}</span>
-            <button className="btn btn-ghost" onClick={handleLogout}>Cerrar sesión</button>
+            <div className="header-avatar-block">
+              <div className="avatar">{authInitials || (authName ? authName.split(/\s+/).map(n=>n[0]).slice(0,2).join('').toUpperCase() : '')}</div>
+              <div className="avatar-info">
+                <div className="connected-text">{authName || email}</div>
+                <button className="btn btn-ghost btn-logout" onClick={handleLogout}>Cerrar sesión</button>
+              </div>
+            </div>
           </div>
         ) : (
           <>
-            <button className="btn btn-secondary">Crear cuenta</button>
+            <a href="/register"><button className="btn btn-secondary">Crear cuenta</button></a>
             <a href="/administracion/login"><button className="btn btn-primary">Iniciar sesión</button></a>
           </>
         )}

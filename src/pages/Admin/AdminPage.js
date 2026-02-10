@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import useWindowSize from './useWindowSize';
 import AdminLayout from '../../components/Admin/AdminLayout/AdminLayout';
 import MenuList from '../../components/Admin/MenuList/MenuList';
@@ -10,6 +10,7 @@ import Login from '../../components/Auth/Login';
 
 const AdminPage = ({ menus, addMenu, updateMenu, deleteMenu, items, addItem, updateItem, deleteItem }) => {
     const { width } = useWindowSize();
+    const location = useLocation();
 
     if (width < 768) { // Breakpoint for mobile devices
         return (
@@ -20,6 +21,11 @@ const AdminPage = ({ menus, addMenu, updateMenu, deleteMenu, items, addItem, upd
         );
     }
 
+    // If we're on the admin login route, render the Login page without the AdminLayout
+    if (location && location.pathname && location.pathname.endsWith('/login')) {
+        return <Login />;
+    }
+
     return (
         <AdminLayout>
             <Routes>
@@ -27,7 +33,6 @@ const AdminPage = ({ menus, addMenu, updateMenu, deleteMenu, items, addItem, upd
                 <Route path="/agregar-menu" element={<MenuForm addMenu={addMenu} items={items} />} />
                 <Route path="/items" element={<ItemList items={items} deleteItem={deleteItem} updateItem={updateItem} />} />
                 <Route path="/agregar-item" element={<ItemForm addItem={addItem} />} />
-                    <Route path="/login" element={<Login />} />
                 <Route path="/editar-item/:id" element={<ItemForm addItem={addItem} updateItem={updateItem} items={items} />} />
                 <Route path="/editar-menu/:id" element={<MenuForm addMenu={addMenu} updateMenu={updateMenu} items={items} menus={menus} />} />
             </Routes>

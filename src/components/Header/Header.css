@@ -69,6 +69,27 @@
   background-color: var(--primary-color-dark);
 }
 
+.header-avatar-block {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  margin-right: 0.75rem;
+}
+
+.avatar-info { display: flex; flex-direction: column; align-items: flex-start; }
+.btn-logout { margin-top: 0.25rem; padding: 0.35rem 0.6rem; }
+
 .btn-primary {
   background-color: var(--accent-color);
   color: var(--white);
