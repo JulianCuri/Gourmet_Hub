@@ -35,7 +35,8 @@ const Register = () => {
             });
             if (resp.status === 201) {
                 setSuccess('Registro exitoso. Ahora puedes iniciar sesión.');
-                setTimeout(() => navigate('/administracion/login'), 1200);
+                // Force a full navigation to the admin login page to avoid a blank render state
+                setTimeout(() => { window.location.href = '/administracion/login'; }, 700);
                 return;
             }
             const txt = await resp.text();

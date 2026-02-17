@@ -20,6 +20,7 @@ function Header() {
 
   // detect admin role by decoding JWT payload (best-effort)
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const [authName, setAuthName] = useState(null);
@@ -36,8 +37,10 @@ function Header() {
         const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
         const json = JSON.parse(decodeURIComponent(escape(window.atob(base64))));
         // common claim names: roles, authorities
-        if (Array.isArray(json.roles) && json.roles.includes('ROLE_ADMIN')) { setIsAdmin(true); return; }
-        if (Array.isArray(json.authorities) && json.authorities.includes('ROLE_ADMIN')) { setIsAdmin(true); return; }
+        if (Array.isArray(json.roles) && json.roles.includes('ROLE_ADMIN')) { setIsAdmin(true); }
+        if (Array.isArray(json.authorities) && json.authorities.includes('ROLE_ADMIN')) { setIsAdmin(true); }
+        if (Array.isArray(json.roles) && json.roles.includes('ROLE_SUPER_ADMIN')) { setIsSuperAdmin(true); }
+        if (Array.isArray(json.authorities) && json.authorities.includes('ROLE_SUPER_ADMIN')) { setIsSuperAdmin(true); }
         // some tokens include 'role' or 'roles' as string
         if (typeof json.role === 'string' && json.role.toLowerCase().includes('admin')) { setIsAdmin(true); return; }
         if (typeof json.roles === 'string' && json.roles.toLowerCase().includes('admin')) { setIsAdmin(true); return; }
@@ -45,6 +48,7 @@ function Header() {
         // ignore parse errors
       }
       setIsAdmin(false);
+      setIsSuperAdmin(false);
     };
     checkAdmin();
     const onAuth = () => checkAdmin();
@@ -52,6 +56,28 @@ function Header() {
     window.addEventListener('storage', onAuth);
     return () => { window.removeEventListener('authChanged', onAuth); window.removeEventListener('storage', onAuth); };
   }, []);
+
+  // expose super-admin flag to storage for layout visibility
+  useEffect(() => {
+    try { localStorage.setItem('authIsSuperAdmin', isSuperAdmin ? '1' : '0'); } catch (e) {}
+    try { window.dispatchEvent(new Event('authChanged')); } catch (e) {}
+  }, [isSuperAdmin]);
+
+  // synchronous check (fallback) that decodes token directly from localStorage
+  const checkRolesFromToken = () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) return false;
+      const t = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+      const payload = t.split('.')[1];
+      if (!payload) return false;
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const json = JSON.parse(decodeURIComponent(escape(window.atob(base64))));
+      if (Array.isArray(json.roles) && (json.roles.includes('ROLE_ADMIN') || json.roles.includes('ROLE_SUPER_ADMIN'))) return true;
+      if (Array.isArray(json.authorities) && (json.authorities.includes('ROLE_ADMIN') || json.authorities.includes('ROLE_SUPER_ADMIN'))) return true;
+    } catch (e) { /* ignore */ }
+    return false;
+  };
 
   useEffect(() => {
     setAuthName(localStorage.getItem('authName'));
@@ -82,8 +108,8 @@ function Header() {
       <div className="header-right">
         {email ? (
           <div className="header-connected">
-            {/* show admin panel button only on main page and when user has admin role */}
-            {isAdmin && location && location.pathname === '/' ? (
+            {/* show admin panel button when user is admin or super-admin and not already in admin area */}
+            {( ((isAdmin || isSuperAdmin) || checkRolesFromToken()) && location && !location.pathname.startsWith('/administracion') ) ? (
               <button className="btn btn-admin-panel" onClick={() => navigate('/administracion')}>Ir a panel</button>
             ) : null}
             <div className="header-avatar-block">

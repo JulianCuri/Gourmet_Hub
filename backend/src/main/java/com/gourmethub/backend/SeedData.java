@@ -142,23 +142,37 @@ public class SeedData {
                 }
             }
             // Seed an admin user for course grading convenience (email: admin@example.com, password: admin)
-            try {
-                var adminOpt = userService.findByEmail("admin@example.com");
-                if (adminOpt.isEmpty()) {
-                    com.gourmethub.backend.model.User admin = new com.gourmethub.backend.model.User();
-                    admin.setNombre("Admin");
-                    admin.setApellido("User");
-                    admin.setEmail("admin@example.com");
-                    admin.setPassword("admin");
-                    java.util.Set<String> roles = new java.util.HashSet<>();
-                    roles.add("ROLE_ADMIN");
-                    admin.setRoles(roles);
-                    userService.saveUser(admin);
-                    System.out.println("Seeded admin user: admin@example.com / admin");
+                try {
+                    var adminOpt = userService.findByEmail("admin@example.com");
+                    if (adminOpt.isEmpty()) {
+                        com.gourmethub.backend.model.User admin = new com.gourmethub.backend.model.User();
+                        admin.setNombre("Admin");
+                        admin.setApellido("User");
+                        admin.setEmail("admin@example.com");
+                        admin.setPassword("admin");
+                        java.util.Set<String> roles = new java.util.HashSet<>();
+                        roles.add("ROLE_ADMIN");
+                        admin.setRoles(roles);
+                        userService.saveUser(admin);
+                        System.out.println("Seeded admin user: admin@example.com / admin");
+                    }
+                    // ensure there is a single super-admin (for higher privileges)
+                    var saOpt = userService.findByEmail("superadmin@example.com");
+                    if (saOpt.isEmpty()) {
+                        com.gourmethub.backend.model.User sa = new com.gourmethub.backend.model.User();
+                        sa.setNombre("Super");
+                        sa.setApellido("Admin");
+                        sa.setEmail("superadmin@example.com");
+                        sa.setPassword("superadmin");
+                        java.util.Set<String> sroles = new java.util.HashSet<>();
+                        sroles.add("ROLE_SUPER_ADMIN");
+                        sa.setRoles(sroles);
+                        userService.saveUser(sa);
+                        System.out.println("Seeded super-admin user: superadmin@example.com / superadmin");
+                    }
+                } catch (Exception ex) {
+                    System.out.println("Could not seed admin users: " + ex.getMessage());
                 }
-            } catch (Exception ex) {
-                System.out.println("Could not seed admin user: " + ex.getMessage());
-            }
         };
     }
 }

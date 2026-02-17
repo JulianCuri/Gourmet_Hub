@@ -513,8 +513,8 @@ function App() {
                   const payload = t.split('.')[1];
                   const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
                   const json = JSON.parse(decodeURIComponent(escape(window.atob(base64))));
-                  const isAdmin = (Array.isArray(json.roles) && json.roles.includes('ROLE_ADMIN'))
-                    || (Array.isArray(json.authorities) && json.authorities.includes('ROLE_ADMIN'))
+                  const isAdmin = (Array.isArray(json.roles) && (json.roles.includes('ROLE_ADMIN') || json.roles.includes('ROLE_SUPER_ADMIN')))
+                    || (Array.isArray(json.authorities) && (json.authorities.includes('ROLE_ADMIN') || json.authorities.includes('ROLE_SUPER_ADMIN')))
                     || (typeof json.role === 'string' && json.role.toLowerCase().includes('admin'))
                     || (typeof json.roles === 'string' && json.roles.toLowerCase().includes('admin'));
 

@@ -1,0 +1,5 @@
+.manage-admins { padding: 16px; }
+.search-form { display:flex; gap:8px; margin-bottom:12px; }
+.admins-table { width:100%; border-collapse:collapse; }
+.admins-table th, .admins-table td { border:1px solid #ddd; padding:8px; }
+.message { margin:8px 0; color: #006400; }
