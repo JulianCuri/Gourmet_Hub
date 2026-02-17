@@ -61,6 +61,13 @@ public class SeedData {
                     else if (r[1].toLowerCase().contains("bebida")) price = BigDecimal.valueOf(40);
                     else if (r[1].toLowerCase().contains("postre")) price = BigDecimal.valueOf(60);
                     it.setPrice(price);
+                    // add example characteristics for some items (simple heuristic)
+                    List<String> chars = new ArrayList<>();
+                    String lower = r[0].toLowerCase();
+                    if (lower.contains("ensalada") || lower.contains("verdura") || lower.contains("vegetal")) chars.add("vegetariano");
+                    if (lower.contains("veg") || lower.contains("medallón de verdura")) chars.add("vegano");
+                    if (lower.contains("hamburguesa") || lower.contains("picante")) chars.add("picante");
+                    it.setCharacteristics(chars);
                     itemService.save(it);
                 }
                 System.out.println("Seeded items from frontend mock data");

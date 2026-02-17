@@ -6,13 +6,14 @@ import ItemCard from '../ItemCard/ItemCard';
 import './MenuReservation.css';
 
 const MenuReservation = ({ menus, items }) => {
-    const navigate = useNavigate();
+            const navigate = useNavigate();
     const { id } = useParams();
     const menu = menus.find(m => m.id === parseInt(id));
 
     const [selectedMain, setSelectedMain] = useState(null);
     const [selectedDessert, setSelectedDessert] = useState(null);
     const [selectedDrink, setSelectedDrink] = useState(null);
+    const [comment, setComment] = useState('');
 
     if (!menu) {
         return <div>Menu not found</div>;
@@ -75,6 +76,16 @@ const MenuReservation = ({ menus, items }) => {
                             ))}
                         </div>
                     </div>
+                </div>
+                <div className="comment-container">
+                    <label htmlFor="reservation-comment">Comentario (opcional)</label>
+                    <textarea
+                        id="reservation-comment"
+                        value={comment}
+                        onChange={e => setComment(e.target.value)}
+                        placeholder="Dejá un comentario sobre tu pedido (opcional)."
+                        rows={3}
+                    />
                 </div>
                 <button className="reserve-button">Reservar pedido</button>
             </div>

@@ -48,6 +48,25 @@
     font-size: 1rem;
 }
 
+.characteristics-grid {
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+.char-checkbox {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 8px;
+    border:1px solid #eee;
+    border-radius:6px;
+    cursor:pointer;
+}
+.char-checkbox input { display:none; }
+.char-checkbox.checked { background:#f0f9f5; border-color:#cfeee0 }
+.char-icon { font-size:1.1rem }
+.char-label { font-size:0.9rem }
+
 .form-actions {
     text-align: right;
     margin-top: 2rem;

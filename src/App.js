@@ -279,7 +279,8 @@ function App() {
       name: newItem.name,
       price: newItem.price || 0.0,
       category: newItem.category,
-      imageUrl: newItem.imageUrl || newItem.image || ''
+      imageUrl: newItem.imageUrl || newItem.image || '',
+      characteristics: Array.isArray(newItem.characteristics) ? newItem.characteristics : []
     };
 
     try {
@@ -365,7 +366,8 @@ function App() {
         name: changes.name,
         price: changes.price,
         category: changes.category,
-        imageUrl: changes.imageUrl || changes.image || ''
+        imageUrl: changes.imageUrl || changes.image || '',
+        characteristics: Array.isArray(changes.characteristics) ? changes.characteristics : []
       };
       const token = localStorage.getItem('authToken');
       const headers = { 'Content-Type': 'application/json' };

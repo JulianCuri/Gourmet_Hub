@@ -41,6 +41,28 @@
     gap: 20px;
 }
 
+.comment-container {
+    max-width: 900px;
+    margin: 24px auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.comment-container label {
+    font-weight: 600;
+}
+
+.comment-container textarea {
+    width: 100%;
+    min-height: 66px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    resize: vertical;
+    font-size: 0.95rem;
+}
+
 .reserve-button {
     display: block;
     width: 100%;

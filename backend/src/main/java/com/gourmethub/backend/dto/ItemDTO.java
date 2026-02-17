@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ItemDTO {
     private Long id;
@@ -21,6 +24,8 @@ public class ItemDTO {
     private String category;
 
     private String imageUrl;
+    @Size(max = 3, message = "No se permiten más de 3 características")
+    private List<String> characteristics = new ArrayList<>();
 
     public ItemDTO() {
     }
@@ -63,5 +68,14 @@ public class ItemDTO {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    @JsonProperty("characteristics")
+    public List<String> getCharacteristics() {
+        return characteristics;
+    }
+
+    public void setCharacteristics(List<String> characteristics) {
+        this.characteristics = characteristics;
     }
 }

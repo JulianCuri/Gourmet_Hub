@@ -2,6 +2,8 @@ package com.gourmethub.backend.model;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "items")
@@ -20,6 +22,11 @@ public class Item {
     private String category;
 
     private String imageUrl;
+
+    @ElementCollection
+    @CollectionTable(name = "item_characteristics", joinColumns = @JoinColumn(name = "item_id"))
+    @Column(name = "characteristic")
+    private List<String> characteristics = new ArrayList<>();
 
     public Item() {
     }
@@ -62,5 +69,13 @@ public class Item {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public List<String> getCharacteristics() {
+        return characteristics;
+    }
+
+    public void setCharacteristics(List<String> characteristics) {
+        this.characteristics = characteristics;
     }
 }

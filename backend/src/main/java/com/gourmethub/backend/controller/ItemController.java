@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
@@ -37,16 +38,15 @@ public class ItemController {
 
     private ItemDTO toDto(Item i) {
         ItemDTO d = new ItemDTO();
+        System.out.println("[DEBUG] toDto item id=" + i.getId() + " characteristics=" + i.getCharacteristics());
         d.setId(i.getId());
         d.setName(i.getName());
-        // Only expose price to admins; for non-admins return null so UI won't show it
-        if (isAdmin()) {
-            d.setPrice(i.getPrice());
-        } else {
-            d.setPrice(null);
-        }
+        // Expose price to all clients
+        d.setPrice(i.getPrice());
         d.setCategory(i.getCategory());
         d.setImageUrl(i.getImageUrl());
+        // expose characteristics to all clients
+        d.setCharacteristics(i.getCharacteristics() != null ? i.getCharacteristics() : new java.util.ArrayList<>());
         return d;
     }
 
@@ -56,6 +56,7 @@ public class ItemController {
         i.setPrice(d.getPrice());
         i.setCategory(d.getCategory());
         i.setImageUrl(d.getImageUrl());
+        i.setCharacteristics(d.getCharacteristics());
         return i;
     }
 
@@ -73,13 +74,21 @@ public class ItemController {
 
     // Admin operations (for now not restricted; will add role checks when auth is ready)
     @PostMapping
-    public ResponseEntity<ItemDTO> create(@Valid @RequestBody ItemDTO dto) {
+    public ResponseEntity<?> create(@Valid @RequestBody ItemDTO dto) {
+        System.out.println("[DEBUG] create ItemDTO characteristics -> " + dto.getCharacteristics());
+        if (dto.getCharacteristics() != null && dto.getCharacteristics().size() > 3) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No se permiten más de 3 características"));
+        }
         Item saved = itemService.createFromDto(dto);
         return ResponseEntity.created(URI.create("/api/items/" + saved.getId())).body(toDto(saved));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ItemDTO> update(@PathVariable Long id, @Valid @RequestBody ItemDTO dto) {
+    public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody ItemDTO dto) {
+        System.out.println("[DEBUG] update ItemDTO characteristics -> " + dto.getCharacteristics());
+        if (dto.getCharacteristics() != null && dto.getCharacteristics().size() > 3) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No se permiten más de 3 características"));
+        }
         Item saved = itemService.updateFromDto(id, dto);
         return ResponseEntity.ok(toDto(saved));
     }
@@ -99,5 +108,38 @@ public class ItemController {
             // swallow for dev convenience
         }
         return ResponseEntity.ok().build();
+    }
+
+    // Debug endpoint: return raw characteristics map for all items
+    @GetMapping("/debug/char-map")
+    public ResponseEntity<?> debugCharMap() {
+        try {
+            var map = itemService.findAll().stream().collect(Collectors.toMap(Item::getId, Item::getCharacteristics));
+            return ResponseEntity.ok(map);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", ex.getMessage()));
+        }
+    }
+
+    // Development helper: fix missing prices for items where price is null
+    @PostMapping("/debug/fix-prices")
+    public ResponseEntity<?> debugFixPrices() {
+        try {
+            int updated = itemService.fixMissingPrices();
+            return ResponseEntity.ok(Map.of("updated", updated));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", ex.getMessage()));
+        }
+    }
+
+    // Development helper: infer and persist simple characteristics for items missing them
+    @PostMapping("/debug/fix-characteristics")
+    public ResponseEntity<?> debugFixCharacteristics() {
+        try {
+            int updated = itemService.fixMissingCharacteristics();
+            return ResponseEntity.ok(Map.of("updated", updated));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", ex.getMessage()));
+        }
     }
 }

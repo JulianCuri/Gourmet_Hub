@@ -7,6 +7,7 @@ const ItemForm = ({ addItem, updateItem, items }) => {
     const [category, setCategory] = useState('plato principal');
     const [price, setPrice] = useState('0.00');
     const [imageUrl, setImageUrl] = useState('');
+    const [characteristics, setCharacteristics] = useState([]);
     const navigate = useNavigate();
     const { id } = useParams();
     const [isEditing, setIsEditing] = useState(false);
@@ -21,6 +22,7 @@ const ItemForm = ({ addItem, updateItem, items }) => {
                 // existing.price might be null for non-admin views; but in admin area it should be present
                 setPrice(existing.price != null ? String(existing.price) : '0.00');
                 setImageUrl(existing.imageUrl || existing.image || '');
+                setCharacteristics(Array.isArray(existing.characteristics) ? existing.characteristics : []);
             }
         }
     }, [id, items]);
@@ -44,6 +46,8 @@ const ItemForm = ({ addItem, updateItem, items }) => {
             image: imageUrl || '',
             imageUrl: imageUrl || '',
             price: price ? parseFloat(price) : 0.0
+            ,
+            characteristics
         };
 
         try {
@@ -126,6 +130,46 @@ const ItemForm = ({ addItem, updateItem, items }) => {
                         onChange={(e) => setImageUrl(e.target.value)}
                     />
                     <small className="hint">También puedes dejarla vacía y luego editar la imagen manualmente.</small>
+                </div>
+                <div className="form-group">
+                    <label>Características (máx. 3)</label>
+                    <div className="characteristics-grid">
+                        {/** lazy import list inline so component has no external dependency */}
+                        {(() => {
+                            const list = [
+                                { key: 'sin_tacc', label: 'Sin TACC', icon: '🚫🌾' },
+                                { key: 'sin_lactosa', label: 'Sin lactosa', icon: '🥛🚫' },
+                                { key: 'vegano', label: 'Vegano', icon: '🥦' },
+                                { key: 'vegetariano', label: 'Vegetariano', icon: '🥬' },
+                                { key: 'picante', label: 'Picante', icon: '🌶️' },
+                                { key: 'sin_mani', label: 'Sin maní', icon: '🚫🥜' }
+                            ];
+                            const max = 3;
+                            return list.map(ch => {
+                                const checked = characteristics.includes(ch.key);
+                                return (
+                                    <label key={ch.key} className={`char-checkbox ${checked ? 'checked' : ''}`}>
+                                        <input
+                                            type="checkbox"
+                                            value={ch.key}
+                                            checked={checked}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    if (characteristics.length >= max) return; // ignore extra
+                                                    setCharacteristics(prev => [...prev, ch.key]);
+                                                } else {
+                                                    setCharacteristics(prev => prev.filter(p => p !== ch.key));
+                                                }
+                                            }}
+                                        />
+                                        <span className="char-icon" title={ch.label}>{ch.icon}</span>
+                                        <span className="char-label">{ch.label}</span>
+                                    </label>
+                                );
+                            });
+                        })()}
+                    </div>
+                    <small className="hint">Seleccioná hasta 3 características por item.</small>
                 </div>
                 <div className="form-actions">
                     <button type="submit" className="btn-submit">Guardar Item</button>

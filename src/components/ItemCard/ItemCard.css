@@ -74,3 +74,20 @@
     margin: 0;
     font-size: 1.35rem;
 }
+
+.char-tooltip {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255,255,255,0.98);
+    border: 1px solid #eee;
+    padding: 6px 8px;
+    border-radius: 8px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+    display: none;
+    z-index: 6;
+}
+.item-card:hover .char-tooltip { display: block; }
+.char-chip { display:flex; align-items:center; gap:6px; padding:4px 6px; white-space:nowrap }
+.char-icon { font-size:1.05rem }
+.char-label { font-size:0.85rem; color:#333 }

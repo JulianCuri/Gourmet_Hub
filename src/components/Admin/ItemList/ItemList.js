@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './ItemList.css';
+import CHARACTERISTICS from '../../../constants/characteristics';
 
 const ItemList = ({ items, deleteItem }) => {
 
@@ -29,6 +30,7 @@ const ItemList = ({ items, deleteItem }) => {
                         <th>Categoría</th>
                         <th>Precio</th>
                         <th>Imagen</th>
+                        <th>Características</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -48,6 +50,22 @@ const ItemList = ({ items, deleteItem }) => {
                                     <img src={'/images/logo192.png'} alt="placeholder" style={{ width: '100px', height: 'auto' }} />
                                 )}
                             </td>
+                            <td>
+                                {Array.isArray(item.characteristics) && item.characteristics.length > 0 ? (
+                                    (() => {
+                                        const chars = item.characteristics
+                                            .map(k => CHARACTERISTICS.find(c => c.key === k))
+                                            .filter(Boolean);
+                                        return (
+                                            <div className="char-icons" title={chars.map(c => c.label).join(', ')}>
+                                                {chars.slice(0,3).map(c => (
+                                                    <span key={c.key} className="char-icon" aria-hidden>{c.icon}</span>
+                                                ))}
+                                            </div>
+                                        );
+                                    })()
+                                ) : ('-')}
+                            </td>
                             <td className="actions-cell">
                                 <Link to={`/administracion/editar-item/${item.id}`} className="btn-edit">Editar</Link>
                                 <button onClick={() => handleDelete(item.id)} className="btn-delete">
@@ -57,7 +75,7 @@ const ItemList = ({ items, deleteItem }) => {
                         </tr>
                     )) : (
                         <tr>
-                            <td colSpan="6">No hay items para mostrar.</td>
+                            <td colSpan="7">No hay items para mostrar.</td>
                         </tr>
                     )}
                 </tbody>
