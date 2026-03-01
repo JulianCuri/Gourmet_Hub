@@ -1,11 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import './ManageAdmins.css';
+import NotAuthorizedAdmin from '../../Auth/NotAuthorizedAdmin';
 
 function ManageAdmins() {
   const [email, setEmail] = useState('');
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(null);
+
+  // Helper function to extract roles from JWT token
+  const extractRolesFromToken = () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) return [];
+      const t = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
+      const payload = t.split('.')[1];
+      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const parsed = JSON.parse(decodeURIComponent(escape(window.atob(base64))));
+      const roles = parsed && (parsed.roles || parsed.authorities || parsed.role);
+      return Array.isArray(roles) ? roles : (typeof roles === 'string' ? [roles] : []);
+    } catch (e) {
+      console.error('Error extracting roles from token', e);
+      return [];
+    }
+  };
 
   const search = async (e) => {
     e && e.preventDefault();
@@ -56,8 +75,17 @@ function ManageAdmins() {
   };
 
   useEffect(() => {
-    // Automatically perform an unfiltered search on mount (same as clicking "Buscar" with empty email)
-    search();
+    // Check if user is SUPER_ADMIN on component mount
+    const roles = extractRolesFromToken();
+    const hasSuperAdminRole = roles.some(r => r === 'ROLE_SUPER_ADMIN');
+    setIsSuperAdmin(hasSuperAdminRole);
+    
+    // Only proceed with data fetching if authorized
+    if (hasSuperAdminRole) {
+      search();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   const toggleAdmin = async (id, makeAdmin) => {
@@ -75,6 +103,16 @@ function ManageAdmins() {
       setMessage('Error al actualizar rol');
     } finally { setLoading(false); }
   };
+
+  // If authorization check is still pending, show loading
+  if (isSuperAdmin === null) {
+    return <div>Loading...</div>;
+  }
+
+  // If not authorized, show access denied message with specific reason
+  if (!isSuperAdmin) {
+    return <NotAuthorizedAdmin message="Sos administrador, pero no tenés permisos para gestionar otros administradores. Solo el super administrador puede realizar esta acción." />;
+  }
 
   return (
     <div className="manage-admins">

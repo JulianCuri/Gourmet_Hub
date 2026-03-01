@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './NotAuthorizedAdmin.css';
 
-const NotAuthorizedAdmin = () => {
+const NotAuthorizedAdmin = ({ message = null }) => {
   const navigate = useNavigate();
 
   const handleReturnHome = () => {
@@ -20,11 +20,14 @@ const NotAuthorizedAdmin = () => {
     navigate('/administracion/login');
   };
 
+  const defaultMessage = 'Estás autenticado, pero no tenés permisos para acceder al panel de administración.';
+  const displayMessage = message || defaultMessage;
+
   return (
     <div className="not-authorized-container">
       <h2>Acceso denegado</h2>
-      <p>Estás autenticado, pero no tenés permisos para acceder al panel de administración.</p>
-      <p>Podes cerrar sesión y entrar con una cuenta de administrador, o volver a la página principal.</p>
+      <p>{displayMessage}</p>
+      <p>Podes volver a la página principal o cerrar sesión.</p>
       <div className="actions">
         <button className="btn-back" onClick={handleReturnHome}>Volver al inicio</button>
         <button className="btn-submit" onClick={handleLogout}>Cerrar sesión</button>
