@@ -29,7 +29,7 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
     const [menuId, setMenuId] = useState(null);
     const [menuDate, setMenuDate] = useState(null);
     const [eventType, setEventType] = useState('almuerzo');
-    const [closingDate, setClosingDate] = useState('');
+    const [closingDate, setClosingDate] = useState(null);
     const [mainDishes, setMainDishes] = useState([]);
     const [desserts, setDesserts] = useState([]);
     const [drinks, setDrinks] = useState([]);
@@ -40,8 +40,22 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
     const [errors, setErrors] = useState({});
 
     const navigate = useNavigate();
+    const isInitialLoadRef = React.useRef(true);
 
-    // If we're editing but the menu list hasn't been loaded yet, show a brief loading state
+    // Mark initial load as complete after component mounts
+    useEffect(() => {
+        isInitialLoadRef.current = false;
+    }, []);
+
+    // When menuDate or eventType changes, auto-update closingDate (but not during initial load)
+    useEffect(() => {
+        if (menuDate && !isInitialLoadRef.current) {
+            const newClosingDate = new Date(menuDate);
+            const hour = eventType === 'almuerzo' ? 9 : 19; // 9 AM for almuerzo, 7 PM for cena
+            newClosingDate.setHours(hour, 0, 0, 0);
+            setClosingDate(newClosingDate);
+        }
+    }, [menuDate, eventType]);
     const editingId = id ? String(id) : null;
     const menuAvailable = editingId ? (menus || []).some(m => String(m.id) === editingId) : true;
 
@@ -89,29 +103,20 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
                 }
                 setEventType(parsedEventType || 'almuerzo');
 
-                // closingDateTime in backend may be just a date or a full datetime. Convert to 'YYYY-MM-DDTHH:MM' for datetime-local input.
+                // closingDateTime in backend may be just a date or a full datetime. Convert to Date object for DatePicker.
                 let rawClosing = menuToEdit.closingDateTime || menuToEdit.closingDate || '';
-                let closingForInput = '';
+                let closingDateObj = null;
                 if (rawClosing) {
                     if (rawClosing.includes('T')) {
-                        // keep up to minutes
-                        closingForInput = rawClosing.substring(0, 16);
+                        closingDateObj = new Date(rawClosing);
                     } else if (/^\d{4}-\d{2}-\d{2}$/.test(rawClosing)) {
-                        closingForInput = `${rawClosing}T00:00`;
+                        closingDateObj = new Date(`${rawClosing}T00:00`);
                     } else {
-                        // try to parse and format
-                        const d = new Date(rawClosing);
-                        if (!isNaN(d.getTime())) {
-                            const yyyy = d.getFullYear();
-                            const mm = String(d.getMonth() + 1).padStart(2, '0');
-                            const dd = String(d.getDate()).padStart(2, '0');
-                            const hh = String(d.getHours()).padStart(2, '0');
-                            const min = String(d.getMinutes()).padStart(2, '0');
-                            closingForInput = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
-                        }
+                        closingDateObj = new Date(rawClosing);
                     }
+                    if (isNaN(closingDateObj.getTime())) closingDateObj = null;
                 }
-                setClosingDate(closingForInput);
+                setClosingDate(closingDateObj);
 
                 // Ensure arrays of numeric ids
                 setMainDishes(Array.isArray(menuToEdit.mainDishes) ? menuToEdit.mainDishes.map(Number) : []);
@@ -122,11 +127,13 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
                 setMenuId(null);
                 setMenuDate(null);
                 setEventType('almuerzo');
-                setClosingDate('');
+                setClosingDate(null);
                 setMainDishes([]);
                 setDesserts([]);
                 setDrinks([]);
             }
+            // Mark initial load as complete, so auto-update of closingDate will trigger on future changes
+            isInitialLoadRef.current = false;
         }
     }, [id, items, menus]);
 
@@ -144,7 +151,8 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
 
         // Client-side validations -> collect into errors to display inline
         const newErrors = {};
-        if (!menuDate || !closingDate) newErrors.menuDate = 'Complete las fechas del menú.';
+        if (!menuDate) newErrors.menuDate = 'Seleccione una fecha para el menú.';
+        if (!closingDate) newErrors.closingDate = 'Seleccione una fecha y hora de cierre.';
         if (menuDate) {
             // normalize to local date start for comparison
             const selected = new Date(menuDate.getFullYear(), menuDate.getMonth(), menuDate.getDate());
@@ -168,7 +176,7 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
             // send date as YYYY-MM-DD string to backend
             date: menuDate ? `${menuDate.getFullYear()}-${String(menuDate.getMonth() + 1).padStart(2, '0')}-${String(menuDate.getDate()).padStart(2, '0')}` : null,
             eventType,
-            closingDateTime: closingDate,
+            closingDateTime: closingDate ? closingDate.toISOString().substring(0, 16) : null,
             mainDishes,
             desserts,
             drinks,
@@ -247,13 +255,35 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
                 </div>
                 <div className="form-group">
                     <label htmlFor="closingDate">Fecha y Hora de Cierre</label>
-                    <input
-                        type="datetime-local"
+                    <DatePicker
                         id="closingDate"
-                        name="closingDate"
-                        required
-                        value={closingDate}
-                        onChange={(e) => setClosingDate(e.target.value)}
+                        selected={closingDate}
+                        onChange={(date) => {
+                            if (date) {
+                                const day = date.getDay();
+                                const isWeekend = (day === 0 || day === 6);
+                                if (isWeekend) {
+                                    setClosingDate(null);
+                                    setErrors(prev => ({ ...prev, closingDate: 'No se permiten cierres en fin de semana.' }));
+                                    return;
+                                }
+                                setClosingDate(date);
+                                setErrors(prev => { const copy = { ...prev }; delete copy.closingDate; return copy; });
+                            } else {
+                                setClosingDate(null);
+                            }
+                        }}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        dateFormat="dd/MM/yyyy HH:mm"
+                        placeholderText="Seleccione fecha y hora"
+                        minDate={new Date()}
+                        filterDate={(date) => {
+                            const day = date.getDay();
+                            return day !== 0 && day !== 6; // disable Sundays(0) and Saturdays(6)
+                        }}
+                        className="react-datepicker-input"
                     />
                     {errors.closingDate && <div className="field-error">{errors.closingDate}</div>}
                 </div>
