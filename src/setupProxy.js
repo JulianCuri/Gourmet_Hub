@@ -7,7 +7,12 @@ module.exports = function(app) {
       target: 'http://localhost:8080',
       changeOrigin: true,
       secure: false,
-      logLevel: 'warn'
+      logLevel: 'warn',
+      onProxyReq: (proxyReq, req, res) => {
+        if (req.headers && req.headers.authorization) {
+          proxyReq.setHeader('Authorization', req.headers.authorization);
+        }
+      }
     })
   );
 };

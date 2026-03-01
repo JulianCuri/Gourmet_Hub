@@ -41,16 +41,21 @@ public class AdminController {
     @PostMapping("/{id}/set-admin")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<?> setAdminRole(@PathVariable Long id, @RequestParam("value") boolean value) {
+        System.out.println("AdminController.setAdminRole: id=" + id + ", value=" + value);
         Optional<User> opt = userRepository.findById(id);
         if (opt.isEmpty()) return ResponseEntity.notFound().build();
         User u = opt.get();
         // Replace roles entirely: if granting admin => only ROLE_ADMIN, otherwise => only ROLE_USER
         if (value) {
-            u.setRoles(java.util.Set.of("ROLE_ADMIN"));
+            u.setRoles(new java.util.HashSet<>(java.util.Set.of("ROLE_ADMIN")));
+            System.out.println("AdminController.setAdminRole: Setting ROLE_ADMIN for user " + u.getEmail());
         } else {
-            u.setRoles(java.util.Set.of("ROLE_USER"));
+            u.setRoles(new java.util.HashSet<>(java.util.Set.of("ROLE_USER")));
+            System.out.println("AdminController.setAdminRole: Setting ROLE_USER for user " + u.getEmail());
         }
         userRepository.save(u);
-        return ResponseEntity.ok(Map.of("updated", true, "id", id, "isAdmin", roles.contains("ROLE_ADMIN")));
+        boolean isAdmin = u.getRoles().contains("ROLE_ADMIN");
+        System.out.println("AdminController.setAdminRole: After save, isAdmin=" + isAdmin + " for user " + u.getEmail());
+        return ResponseEntity.ok(Map.of("updated", true, "id", id, "isAdmin", isAdmin));
     }
 }

@@ -16,6 +16,13 @@ function ManageAdmins() {
       const headers = { 'Accept': 'application/json' };
       if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       const res = await fetch(`/api/admins/search${q}`, { headers });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        setMessage(`Error al buscar usuarios: ${res.status} ${res.statusText}`);
+        console.error('Buscar /api/admins/search response:', res.status, res.statusText, text);
+        setUsers([]);
+        return;
+      }
       const data = await res.json();
       const arr = Array.isArray(data) ? data : (data && data.value) ? data.value : (data ? [data] : []);
       // hide super-admin accounts from the management UI
@@ -29,9 +36,16 @@ function ManageAdmins() {
     setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      const headers = {};
+      const headers = { 'Accept': 'application/json' };
       if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       const res = await fetch('/api/admins/list-admins', { headers });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        setMessage(`Error al listar administradores: ${res.status} ${res.statusText}`);
+        console.error('List /api/admins/list-admins response:', res.status, res.statusText, text);
+        setUsers([]);
+        return;
+      }
       const data = await res.json();
       const arr = Array.isArray(data) ? data : (data && data.value) ? data.value : (data ? [data] : []);
       // hide super-admin accounts from the management UI

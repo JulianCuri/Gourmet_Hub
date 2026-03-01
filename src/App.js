@@ -244,14 +244,90 @@ function App() {
           }
         }
         const text = await resp.text();
+        console.error('addMenu: backend returned non-ok', resp.status, text);
         throw new Error(text || `HTTP ${resp.status}`);
       }
 
       const created = await resp.json();
-      const menuWithId = { ...newMenu, id: created.id };
-      setMenus(prevMenus => [...(prevMenus || []), menuWithId]);
-      setNextMenuId(prevId => prevId + 1);
-      return menuWithId;
+      console.debug('addMenu: created response', created);
+
+      // After successful creation, refresh menus and items from backend to keep state synchronized
+      try {
+        const token2 = localStorage.getItem('authToken');
+        const headers2 = {};
+        if (token2) headers2['Authorization'] = token2.startsWith('Bearer ') ? token2 : `Bearer ${token2}`;
+        const [itemsResp2, menusResp2] = await Promise.all([
+          fetch('/api/items', { headers: headers2 }),
+          fetch('/api/menus', { headers: headers2 })
+        ]);
+
+        if (itemsResp2.ok && menusResp2.ok) {
+          const itemsJsonRaw = await itemsResp2.json();
+          const menusJson = await menusResp2.json();
+          const itemsJson = (itemsJsonRaw || []).map(i => ({ ...i, image: i.image || i.imageUrl || null }));
+          setItems(itemsJson);
+
+          const itemsById = (itemsJson || []).reduce((map, it) => { map[it.id] = it; return map; }, {});
+
+          const transformed = (menusJson || []).map(mdto => {
+            const mainDishes = [];
+            const desserts = [];
+            const drinks = [];
+
+            (mdto.itemIds || []).forEach(id => {
+              const it = itemsById[id];
+              const cat = (it && it.category) ? it.category.toLowerCase() : '';
+              if (cat.includes('plato')) mainDishes.push(id);
+              else if (cat.includes('postre')) desserts.push(id);
+              else if (cat.includes('bebida')) drinks.push(id);
+              else mainDishes.push(id);
+            });
+
+            let date = undefined;
+            let eventType = undefined;
+            let closingDateTime = mdto.closingDateTime || undefined;
+            if (mdto.description) {
+              const parts = mdto.description.split(/\s+/).filter(Boolean);
+              if (parts.length >= 1) eventType = parts[0];
+              const dateToken = parts.find(p => /\d{4}-\d{2}-\d{2}/.test(p));
+              if (dateToken) date = dateToken;
+              if (!closingDateTime) {
+                const dtToken = parts.find(p => /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(p));
+                if (dtToken) closingDateTime = dtToken;
+                if (!closingDateTime && date) closingDateTime = `${date}T00:00`;
+              }
+            }
+
+            return {
+              id: mdto.id,
+              name: mdto.name,
+              description: mdto.description,
+              mainDishes,
+              desserts,
+              drinks,
+              date,
+              eventType,
+              closingDateTime
+            };
+          });
+
+          setMenus(transformed);
+          const maxMenuId = Array.isArray(transformed) ? transformed.reduce((max, m) => (m.id > max ? m.id : max), 0) : 0;
+          setNextMenuId(maxMenuId + 1);
+        } else {
+          // fallback to optimistic local append if refresh failed
+          const menuWithId = { ...newMenu, id: created.id };
+          setMenus(prevMenus => [...(prevMenus || []), menuWithId]);
+          setNextMenuId(prevId => prevId + 1);
+        }
+      } catch (e) {
+        console.warn('Failed to refresh menus after create, falling back to local append', e);
+        const menuWithId = { ...newMenu, id: created.id };
+        setMenus(prevMenus => [...(prevMenus || []), menuWithId]);
+        setNextMenuId(prevId => prevId + 1);
+      }
+
+      return { ...newMenu, id: created.id };
     } catch (err) {
       // For non-validation errors, fallback to local save so user doesn't lose work
       if (err && err.type === 'validation') {
@@ -423,27 +499,112 @@ function App() {
         }
 
         const saved = await resp.json();
-        // Convert saved DTO to frontend shape
-        const newMenu = {
-          id: saved.id,
-          name: saved.name,
-          description: saved.description,
-          mainDishes: saved.itemIds || [],
-          desserts: [],
-          drinks: [],
-          date: '',
-          eventType: '',
-          closingDateTime: saved.closingDateTime
-        };
-        // try to infer date/eventType from description like earlier
-        if (saved.description) {
-          const parts = saved.description.split(/\s+/).filter(Boolean);
-          if (parts.length >= 1) newMenu.eventType = parts[0];
-          const dateToken = parts.find(p => /\d{4}-\d{2}-\d{2}/.test(p));
-          if (dateToken) newMenu.date = dateToken;
-        }
 
-        setMenus(prevMenus => (prevMenus || []).map(menu => (menu.id === newMenu.id ? { ...menu, ...newMenu } : menu)));
+        // After successful update, refresh menus and items from backend to keep state synchronized
+        try {
+          const token2 = localStorage.getItem('authToken');
+          const headers2 = {};
+          if (token2) headers2['Authorization'] = token2.startsWith('Bearer ') ? token2 : `Bearer ${token2}`;
+          const [itemsResp2, menusResp2] = await Promise.all([
+            fetch('/api/items', { headers: headers2 }),
+            fetch('/api/menus', { headers: headers2 })
+          ]);
+
+          if (itemsResp2.ok && menusResp2.ok) {
+            const itemsJsonRaw = await itemsResp2.json();
+            const menusJson = await menusResp2.json();
+            const itemsJson = (itemsJsonRaw || []).map(i => ({ ...i, image: i.image || i.imageUrl || null }));
+            setItems(itemsJson);
+
+            const itemsById = (itemsJson || []).reduce((map, it) => { map[it.id] = it; return map; }, {});
+
+            const transformed = (menusJson || []).map(mdto => {
+              const mainDishes = [];
+              const desserts = [];
+              const drinks = [];
+
+              (mdto.itemIds || []).forEach(id => {
+                const it = itemsById[id];
+                const cat = (it && it.category) ? it.category.toLowerCase() : '';
+                if (cat.includes('plato')) mainDishes.push(id);
+                else if (cat.includes('postre')) desserts.push(id);
+                else if (cat.includes('bebida')) drinks.push(id);
+                else mainDishes.push(id);
+              });
+
+              let date = undefined;
+              let eventType = undefined;
+              let closingDateTime = mdto.closingDateTime || undefined;
+              if (mdto.description) {
+                const parts = mdto.description.split(/\s+/).filter(Boolean);
+                if (parts.length >= 1) eventType = parts[0];
+                const dateToken = parts.find(p => /\d{4}-\d{2}-\d{2}/.test(p));
+                if (dateToken) date = dateToken;
+                if (!closingDateTime) {
+                  const dtToken = parts.find(p => /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(p));
+                  if (dtToken) closingDateTime = dtToken;
+                  if (!closingDateTime && date) closingDateTime = `${date}T00:00`;
+                }
+              }
+
+              return {
+                id: mdto.id,
+                name: mdto.name,
+                description: mdto.description,
+                mainDishes,
+                desserts,
+                drinks,
+                date,
+                eventType,
+                closingDateTime
+              };
+            });
+
+            setMenus(transformed);
+            const maxMenuId = Array.isArray(transformed) ? transformed.reduce((max, m) => (m.id > max ? m.id : max), 0) : 0;
+            setNextMenuId(maxMenuId + 1);
+          } else {
+            // fallback to optimistic local update if refresh failed
+            const newMenu = {
+              id: saved.id,
+              name: saved.name,
+              description: saved.description,
+              mainDishes: saved.itemIds || [],
+              desserts: [],
+              drinks: [],
+              date: '',
+              eventType: '',
+              closingDateTime: saved.closingDateTime
+            };
+            if (saved.description) {
+              const parts = saved.description.split(/\s+/).filter(Boolean);
+              if (parts.length >= 1) newMenu.eventType = parts[0];
+              const dateToken = parts.find(p => /\d{4}-\d{2}-\d{2}/.test(p));
+              if (dateToken) newMenu.date = dateToken;
+            }
+            setMenus(prevMenus => (prevMenus || []).map(menu => (menu.id === newMenu.id ? { ...menu, ...newMenu } : menu)));
+          }
+        } catch (e) {
+          console.warn('Failed to refresh menus after update, falling back to local update', e);
+          const newMenu = {
+            id: saved.id,
+            name: saved.name,
+            description: saved.description,
+            mainDishes: saved.itemIds || [],
+            desserts: [],
+            drinks: [],
+            date: '',
+            eventType: '',
+            closingDateTime: saved.closingDateTime
+          };
+          if (saved.description) {
+            const parts = saved.description.split(/\s+/).filter(Boolean);
+            if (parts.length >= 1) newMenu.eventType = parts[0];
+            const dateToken = parts.find(p => /\d{4}-\d{2}-\d{2}/.test(p));
+            if (dateToken) newMenu.date = dateToken;
+          }
+          setMenus(prevMenus => (prevMenus || []).map(menu => (menu.id === newMenu.id ? { ...menu, ...newMenu } : menu)));
+        }
       } catch (err) {
         console.error('Failed to update menu on backend:', err);
         // fallback to local update
@@ -455,13 +616,86 @@ function App() {
   const deleteMenu = (menuId) => {
     (async () => {
       try {
-        const resp = await fetch(`/api/menus/${menuId}`, { method: 'DELETE' });
+        const token = localStorage.getItem('authToken');
+        const headers = {};
+        if (token) headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+        const resp = await fetch(`/api/menus/${menuId}`, { method: 'DELETE', headers });
         if (!resp.ok && resp.status !== 204) {
           const text = await resp.text();
           throw new Error(text || `HTTP ${resp.status}`);
         }
-        setMenus((prevMenus) => (prevMenus || []).filter(menu => menu.id !== menuId));
-        return true;
+
+        // After successful delete, refresh menus and items from backend to keep state synchronized
+        try {
+          const [itemsResp2, menusResp2] = await Promise.all([
+            fetch('/api/items', { headers }),
+            fetch('/api/menus', { headers })
+          ]);
+
+          if (itemsResp2.ok && menusResp2.ok) {
+            const itemsJsonRaw = await itemsResp2.json();
+            const menusJson = await menusResp2.json();
+            const itemsJson = (itemsJsonRaw || []).map(i => ({ ...i, image: i.image || i.imageUrl || null }));
+            setItems(itemsJson);
+
+            const itemsById = (itemsJson || []).reduce((map, it) => { map[it.id] = it; return map; }, {});
+
+            const transformed = (menusJson || []).map(mdto => {
+              const mainDishes = [];
+              const desserts = [];
+              const drinks = [];
+
+              (mdto.itemIds || []).forEach(id => {
+                const it = itemsById[id];
+                const cat = (it && it.category) ? it.category.toLowerCase() : '';
+                if (cat.includes('plato')) mainDishes.push(id);
+                else if (cat.includes('postre')) desserts.push(id);
+                else if (cat.includes('bebida')) drinks.push(id);
+                else mainDishes.push(id);
+              });
+
+              let date = undefined;
+              let eventType = undefined;
+              let closingDateTime = mdto.closingDateTime || undefined;
+              if (mdto.description) {
+                const parts = mdto.description.split(/\s+/).filter(Boolean);
+                if (parts.length >= 1) eventType = parts[0];
+                const dateToken = parts.find(p => /\d{4}-\d{2}-\d{2}/.test(p));
+                if (dateToken) date = dateToken;
+                if (!closingDateTime) {
+                  const dtToken = parts.find(p => /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(p));
+                  if (dtToken) closingDateTime = dtToken;
+                  if (!closingDateTime && date) closingDateTime = `${date}T00:00`;
+                }
+              }
+
+              return {
+                id: mdto.id,
+                name: mdto.name,
+                description: mdto.description,
+                mainDishes,
+                desserts,
+                drinks,
+                date,
+                eventType,
+                closingDateTime
+              };
+            });
+
+            setMenus(transformed);
+            const maxMenuId = Array.isArray(transformed) ? transformed.reduce((max, m) => (m.id > max ? m.id : max), 0) : 0;
+            setNextMenuId(maxMenuId + 1);
+            return true;
+          }
+
+          // if refresh failed, fall back to optimistic removal
+          setMenus((prevMenus) => (prevMenus || []).filter(menu => menu.id !== menuId));
+          return true;
+        } catch (e) {
+          console.warn('Failed to refresh menus after delete, falling back to local removal', e);
+          setMenus((prevMenus) => (prevMenus || []).filter(menu => menu.id !== menuId));
+          return true;
+        }
       } catch (err) {
         console.warn('Failed to delete menu from backend, falling back to local removal', err);
         setMenus((prevMenus) => (prevMenus || []).filter(menu => menu.id !== menuId));

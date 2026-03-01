@@ -28,7 +28,10 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        System.out.println("JwtFilter: incoming Authorization header='" + header + "' for request " + request.getMethod() + " " + request.getRequestURI());
         if (header == null || !header.startsWith("Bearer ")) {
+            // no Authorization header or not Bearer
+            System.out.println("JwtFilter: no Bearer header present for request " + request.getMethod() + " " + request.getRequestURI());
             filterChain.doFilter(request, response);
             return;
         }
@@ -37,6 +40,7 @@ public class JwtFilter extends OncePerRequestFilter {
             Claims claims = jwtUtil.validateToken(token);
             String email = claims.getSubject();
             Object rolesObj = claims.get("roles");
+            System.out.println("JwtFilter: validated token for " + email + ", raw roles=" + rolesObj);
             List<SimpleGrantedAuthority> authorities = List.of();
             if (rolesObj instanceof List<?>) {
                 List<?> raw = (List<?>) rolesObj;
@@ -49,6 +53,8 @@ public class JwtFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(auth);
         } catch (Exception ex) {
             // token invalid or roles malformed -> ignore and proceed as anonymous
+            System.err.println("JwtFilter: Exception validating token: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
+            ex.printStackTrace();
         }
         filterChain.doFilter(request, response);
     }

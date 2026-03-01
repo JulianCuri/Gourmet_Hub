@@ -7,6 +7,7 @@ import com.gourmethub.backend.service.MenuService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.net.URI;
 import java.util.List;
@@ -46,6 +47,8 @@ public class MenuController {
 
     @PostMapping
     public ResponseEntity<MenuDTO> create(@Valid @RequestBody MenuDTO dto) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("MenuController.create called. Authentication: " + auth + ", authorities=" + (auth != null ? auth.getAuthorities() : "<none>"));
         Menu saved = menuService.createFromDto(dto);
         return ResponseEntity.created(URI.create("/api/menus/" + saved.getId())).body(toDto(saved));
     }

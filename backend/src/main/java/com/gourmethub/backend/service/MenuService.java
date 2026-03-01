@@ -37,7 +37,7 @@ public class MenuService {
         return menuRepository.save(menu);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     public void deleteById(Long id) {
         if (!menuRepository.existsById(id)) {
             throw new ResourceNotFoundException("Menu not found with id: " + id);
@@ -53,7 +53,7 @@ public class MenuService {
                 .collect(Collectors.toList());
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     public Menu createFromDto(MenuDTO dto) {
         if (dto == null) throw new InvalidRequestException("Menu data is required");
         Menu m = new Menu();
@@ -65,7 +65,7 @@ public class MenuService {
         return save(m);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     public Menu updateFromDto(Long id, MenuDTO dto) {
         Menu existing = findById(id).orElseThrow(() -> new ResourceNotFoundException("Menu not found with id: " + id));
         existing.setName(dto.getName());
