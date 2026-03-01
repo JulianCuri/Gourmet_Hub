@@ -29,7 +29,7 @@ const MenuCard = ({ menu }) => {
       </Carousel>
       <div className="menu-card-content" onClick={handleCardClick}>
         <h3 className="menu-card-name">{menu.name}</h3>
-        <p className="menu-card-closing-date">Fecha de cierre: {new Date(menu.closingDateTime).toLocaleString()}</p>
+        <p className="menu-card-closing-date">Fecha de cierre: {new Date(menu.closingDateTime).toLocaleString('es-ES', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</p>
       </div>
     </div>
   );

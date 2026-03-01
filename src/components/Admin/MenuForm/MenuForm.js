@@ -171,12 +171,22 @@ const MenuForm = ({ addMenu, items, menus, updateMenu }) => {
             return;
         }
 
+        // Helper function to format local date/time without timezone conversion
+        const formatLocalDateTime = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        };
+
         const menuData = {
             name: getFormattedMenuName(eventType, menuDate),
             // send date as YYYY-MM-DD string to backend
             date: menuDate ? `${menuDate.getFullYear()}-${String(menuDate.getMonth() + 1).padStart(2, '0')}-${String(menuDate.getDate()).padStart(2, '0')}` : null,
             eventType,
-            closingDateTime: closingDate ? closingDate.toISOString().substring(0, 16) : null,
+            closingDateTime: closingDate ? formatLocalDateTime(closingDate) : null,
             mainDishes,
             desserts,
             drinks,
