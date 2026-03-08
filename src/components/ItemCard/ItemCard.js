@@ -4,7 +4,34 @@ import CHARACTERISTICS from '../../constants/characteristics';
 
 const ItemCard = ({ item, onSelect, isSelected }) => {
     const chars = Array.isArray(item.characteristics)
-        ? item.characteristics.map(k => CHARACTERISTICS.find(c => c.key === k)).filter(Boolean)
+        ? item.characteristics
+            .map((ch) => {
+                // New format: object from backend { id, name, icon }
+                if (ch && typeof ch === 'object') {
+                    const label = ch.name || ch.label || '';
+                    const icon = ch.icon || '';
+                    if (!label && !icon) return null;
+                    return {
+                        key: ch.id || ch.key || `${label}-${icon}`,
+                        label,
+                        icon,
+                    };
+                }
+
+                // Legacy format: string key mapped against constants
+                if (typeof ch === 'string') {
+                    const legacy = CHARACTERISTICS.find((c) => c.key === ch);
+                    if (!legacy) return null;
+                    return {
+                        key: legacy.key,
+                        label: legacy.label,
+                        icon: legacy.icon,
+                    };
+                }
+
+                return null;
+            })
+            .filter(Boolean)
         : [];
 
     return (
