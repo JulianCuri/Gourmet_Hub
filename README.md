@@ -86,6 +86,16 @@ mvn -DskipTests spring-boot:run -Dspring-boot.run.profiles=dev
 
 Backend/API: `http://localhost:8080` (`/api/*`)
 
+## Usuarios de prueba
+
+El backend viene con un usuario super administrador preconfigurado:
+
+- **Email**: `superadmin@example.com`
+- **Contraseña**: `superadmin`
+- **Rol**: `ROLE_SUPER_ADMIN`
+
+Con este usuario podes acceder a todas las funcionalidades del panel de administracion, gestion de caracteristicas y gestion de roles de otros usuarios.
+
 ## Base de datos (H2)
 
 - Modo archivo (persistente en desarrollo)
@@ -97,6 +107,53 @@ Para resetear datos locales:
 1. Detener backend
 2. Borrar archivos en `gourmet-hub/backend/data/`
 3. Levantar backend nuevamente
+
+## Endpoints del backend
+
+Con el backend corriendo en `http://localhost:8080`, tenes disponibles:
+
+### Raiz y utilidad
+
+- `GET /` → redirige automaticamente a `/api/items`
+- `GET /health` → health check del servidor
+
+### Autenticacion
+
+- `POST /api/auth/register` → registro de nuevos usuarios
+- `POST /api/auth/login` → login (devuelve token JWT)
+
+### Items
+
+- `GET /api/items` → listado completo de items
+- `GET /api/items/{id}` → detalle de un item
+- `POST /api/items` → crear item (requiere rol `ADMIN`)
+- `PUT /api/items/{id}` → editar item (requiere rol `ADMIN`)
+- `DELETE /api/items/{id}` → eliminar item (requiere rol `ADMIN`)
+
+### Menus
+
+- `GET /api/menus` → listado completo de menus
+- `GET /api/menus/{id}` → detalle de un menu
+- `POST /api/menus` → crear menu (requiere rol `ADMIN`)
+- `PUT /api/menus/{id}` → editar menu (requiere rol `ADMIN`)
+- `DELETE /api/menus/{id}` → eliminar menu (requiere rol `ADMIN`)
+
+### Caracteristicas dinamicas
+
+- `GET /api/characteristics` → listado de caracteristicas
+- `POST /api/characteristics` → crear caracteristica (requiere rol `ADMIN`)
+- `DELETE /api/characteristics/{id}` → eliminar caracteristica (requiere rol `ADMIN`)
+
+### Gestion de administradores
+
+- `GET /api/admins/search?email=...` → buscar usuarios (requiere rol `SUPER_ADMIN`)
+- `POST /api/admins/{userId}/grant-admin` → asignar rol `ADMIN` (requiere rol `SUPER_ADMIN`)
+- `POST /api/admins/{userId}/revoke-admin` → quitar rol `ADMIN` (requiere rol `SUPER_ADMIN`)
+
+### Desarrollo
+
+- `POST /api/debug/delete-item/{id}` → eliminar item sin autenticacion (solo desarrollo)
+- `GET /h2-console` → consola web de la base de datos H2
 
 ## Estructura (resumen)
 
